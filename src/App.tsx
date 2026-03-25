@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Layout from '@/components/Layout';
+import Login from '@/src/pages/Login';
+import Dashboard from '@/src/pages/Dashboard';
+import Employees from '@/src/pages/Employees';
+import Customers from '@/src/pages/Customers';
+import Users from '@/src/pages/Users';
+import Transactions from '@/src/pages/Transactions';
+import Billing from '@/src/pages/Billing';
+import Reports from '@/src/pages/Reports';
+import Activity from '@/src/pages/Activity';
+import Services from '@/src/pages/Services';
+import Packages from '@/src/pages/Packages';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [user, setUser] = useState<{ username: string; role: string } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('luxowash_user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  if (!user) {
+    return <Login onLogin={(u) => {
+      setUser(u);
+      localStorage.setItem('luxowash_user', JSON.stringify(u));
+    }} />;
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <Layout user={user} onLogout={() => {
+        setUser(null);
+        localStorage.removeItem('luxowash_user');
+      }}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/employees" element={<Employees />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/billing" element={<Billing />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/packages" element={<Packages />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
 }
 
-export default App
+export default App;
