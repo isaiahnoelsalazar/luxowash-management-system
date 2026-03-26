@@ -60,8 +60,8 @@ export default function Billing() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Billing & Payments</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Billing & Payments</h1>
       </div>
 
       <div className="mb-4">
@@ -77,8 +77,9 @@ export default function Billing() {
         <CardHeader>
           <CardTitle>Billing Records</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Transaction ID</TableHead>
@@ -119,6 +120,7 @@ export default function Billing() {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -187,13 +189,13 @@ export default function Billing() {
       </Dialog>
       {/* View Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Billing & Transaction Details</DialogTitle>
           </DialogHeader>
           {selectedBill && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">Billing ID</p>
                   <p className="font-medium">{selectedBill.BillingId}</p>

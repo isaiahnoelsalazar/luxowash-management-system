@@ -60,9 +60,9 @@ export default function Employees() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
-        <Button onClick={openAdd}>Add Employee</Button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Employees</h1>
+        <Button onClick={openAdd} className="w-full sm:w-auto">Add Employee</Button>
       </div>
 
       <div className="mb-4">
@@ -75,12 +75,12 @@ export default function Employees() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
+          <DialogContent className="w-[95vw] max-w-md p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>{formData.EmployeeId ? 'Edit Employee' : 'Add Employee'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>First Name</Label>
                   <Input value={formData.FirstName} onChange={e => setFormData({...formData, FirstName: e.target.value})} required />
@@ -111,8 +111,9 @@ export default function Employees() {
         <CardHeader>
           <CardTitle>Employee List & Time Tracking</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -133,7 +134,7 @@ export default function Employees() {
                         {isActive ? 'Timed In' : 'Timed Out'}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right space-x-2">
+                    <TableCell className="text-right space-x-2 whitespace-nowrap">
                       <Button variant="outline" size="sm" onClick={() => openEdit(emp)}>Edit</Button>
                       {isActive ? (
                         <Button variant="destructive" size="sm" onClick={() => handleTimeAction(emp.EmployeeId, 'out')}>Time Out</Button>
@@ -146,6 +147,7 @@ export default function Employees() {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

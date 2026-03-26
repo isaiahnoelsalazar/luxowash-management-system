@@ -17,8 +17,8 @@ export default function Activity() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Activity Log</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Activity Log</h1>
       </div>
 
       <div className="mb-4">
@@ -34,8 +34,9 @@ export default function Activity() {
         <CardHeader>
           <CardTitle>System Interactions</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Message</TableHead>
@@ -55,6 +56,7 @@ export default function Activity() {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

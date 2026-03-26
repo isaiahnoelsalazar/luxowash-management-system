@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 export default function Transactions() {
-  const { transactions, activeEmployees, employees: allEmployees, vehicles, services, packages, loading, refreshTransactions } = useData();
+  const { transactions, activeEmployees, employees: allEmployees, vehicles, services, packages, loading, refreshTransactions, fetchAll } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedTransactionDetails, setSelectedTransactionDetails] = useState<any>(null);
@@ -46,8 +46,7 @@ export default function Transactions() {
 
   const calculateTotal = () => {
     let total = 0;
-    const vehicleId = selectedVehicle ? selectedVehicle.split(':')[0] : '';
-    const vehicle = vehicles.find(v => v.VehicleId === vehicleId);
+    const vehicle = vehicles.find(v => `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` === selectedVehicle);
     
     if (vehicle?.VehicleModel === 'TRUCK') {
       total = truckPrice;
@@ -96,8 +95,15 @@ export default function Transactions() {
 
     const totalBalance = calculateTotal();
 
-    const vehicleId = selectedVehicle ? selectedVehicle.split(':')[0] : '';
-    const isTruck = vehicles.find(v => v.VehicleId === vehicleId)?.VehicleModel === 'TRUCK';
+    const vehicle = vehicles.find(v => `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` === selectedVehicle);
+    const vehicleId = vehicle?.VehicleId || '';
+    
+    if (!vehicleId) {
+      alert('Selected vehicle not found. Please select a valid vehicle from the list.');
+      return;
+    }
+
+    const isTruck = vehicle?.VehicleModel === 'TRUCK';
     const finalExtras = isTruck ? (extras ? `${extras} | Notes: ${truckNotes}` : `Notes: ${truckNotes}`) : extras;
 
     const payload = {
@@ -115,7 +121,7 @@ export default function Transactions() {
       await api.post('/transactions', payload);
       setIsDialogOpen(false);
       resetForm();
-      refreshTransactions();
+      fetchAll();
     } catch (error) {
       console.error('Failed to create transaction', error);
     }
@@ -135,7 +141,7 @@ export default function Transactions() {
   const updateStatus = async (id: string, status: string) => {
     try {
       await api.put('/transactions', { TransactionId: id, TransactionStatus: status });
-      refreshTransactions();
+      fetchAll();
     } catch (error) {
       console.error('Failed to update status', error);
     }
@@ -201,24 +207,18 @@ export default function Transactions() {
               
               <div className="space-y-2">
                 <Label>Select Vehicle (Available)</Label>
-                <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a vehicle">
-                      {selectedVehicle ? (() => {
-                        const vId = selectedVehicle.split(':')[0];
-                        const v = availableVehicles.find(v => v.VehicleId === vId);
-                        return v ? `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` : undefined;
-                      })() : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableVehicles.map(v => (
-                      <SelectItem key={v.VehicleId} value={`${v.VehicleId}:${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}`}>
-                        {v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input 
+                  list="vehicle-list"
+                  value={selectedVehicle} 
+                  onChange={e => setSelectedVehicle(e.target.value)} 
+                  placeholder="Type plate number or select..."
+                  required 
+                />
+                <datalist id="vehicle-list">
+                  {availableVehicles.map(v => (
+                    <option key={v.VehicleId} value={`${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}`} />
+                  ))}
+                </datalist>
               </div>
 
               {/* Employees Selection */}
@@ -245,11 +245,15 @@ export default function Transactions() {
               </div>
 
               {/* Package Selection */}
-              {vehicles.find(v => v.VehicleId === (selectedVehicle ? selectedVehicle.split(':')[0] : ''))?.VehicleBrand !== 'GENERAL VEHICLE' && (
+              {vehicles.find(v => `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` === selectedVehicle)?.VehicleBrand !== 'GENERAL VEHICLE' && (
                 <div className="space-y-2">
                   <Label>Select Package (Optional)</Label>
                   <Select value={selectedPackage} onValueChange={handlePackageChange}>
-                    <SelectTrigger><SelectValue placeholder="Select a package" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a package">
+                        {selectedPackage && selectedPackage !== 'none' ? packages.find(p => p.PackageId === selectedPackage)?.PackageName : undefined}
+                      </SelectValue>
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
                       {packages.map(p => (
@@ -263,13 +267,12 @@ export default function Transactions() {
               )}
 
               {/* Services Selection */}
-              {vehicles.find(v => v.VehicleId === (selectedVehicle ? selectedVehicle.split(':')[0] : ''))?.VehicleModel !== 'TRUCK' && (
+              {vehicles.find(v => `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` === selectedVehicle)?.VehicleModel !== 'TRUCK' && (
                 <div className="space-y-2">
                   <Label>Additional Services</Label>
                   <div className="grid grid-cols-2 gap-2 border p-4 rounded-md max-h-48 overflow-y-auto">
                     {services.filter(srv => {
-                      const vehicleId = selectedVehicle ? selectedVehicle.split(':')[0] : '';
-                      const vehicle = vehicles.find(v => v.VehicleId === vehicleId);
+                      const vehicle = vehicles.find(v => `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` === selectedVehicle);
                       if (!vehicle) return true;
                       
                       const model = vehicle.VehicleModel;
@@ -303,7 +306,7 @@ export default function Transactions() {
               )}
 
               {/* Truck Specific Fields */}
-              {vehicles.find(v => v.VehicleId === (selectedVehicle ? selectedVehicle.split(':')[0] : ''))?.VehicleModel === 'TRUCK' && (
+              {vehicles.find(v => `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` === selectedVehicle)?.VehicleModel === 'TRUCK' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Negotiated Price (₱)</Label>
@@ -390,15 +393,32 @@ export default function Transactions() {
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => openViewDialog(t)}>View</Button>
-                      <Select value={t.TransactionStatus} onValueChange={(val) => updateStatus(t.TransactionId, val)}>
+                      <Select 
+                        value={t.TransactionStatus} 
+                        onValueChange={(val) => updateStatus(t.TransactionId, val)}
+                        disabled={t.TransactionStatus === 'Completed' || t.TransactionStatus === 'Cancelled'}
+                      >
                         <SelectTrigger className="w-[140px] inline-flex h-8">
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Ready">Ready</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                          {t.TransactionStatus === 'Ready' && (
+                            <>
+                              <SelectItem value="Ready">Ready</SelectItem>
+                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            </>
+                          )}
+                          {t.TransactionStatus === 'In Progress' && (
+                            <>
+                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="Completed">Completed</SelectItem>
+                              <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            </>
+                          )}
+                          {(t.TransactionStatus === 'Completed' || t.TransactionStatus === 'Cancelled') && (
+                            <SelectItem value={t.TransactionStatus}>{t.TransactionStatus}</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </TableCell>

@@ -97,9 +97,9 @@ export default function Customers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Customers & Vehicles</h1>
-        <Button onClick={openAddCustomer}>Add New Customer</Button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Customers & Vehicles</h1>
+        <Button onClick={openAddCustomer} className="w-full sm:w-auto">Add New Customer</Button>
       </div>
 
       <div className="mb-4">
@@ -112,12 +112,12 @@ export default function Customers() {
       </div>
 
       <Dialog open={isCustomerDialogOpen} onOpenChange={setIsCustomerDialogOpen}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] max-w-md p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>{customerForm.CustomerId ? 'Edit Customer' : 'Add Customer'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCustomerSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>First Name</Label>
                 <Input value={customerForm.FirstName} onChange={e => setCustomerForm({...customerForm, FirstName: e.target.value})} required />
@@ -141,12 +141,12 @@ export default function Customers() {
       </Dialog>
 
       <Dialog open={isVehicleDialogOpen} onOpenChange={setIsVehicleDialogOpen}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] max-w-md p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>{vehicleForm.VehicleId ? 'Edit Vehicle' : 'Add Vehicle'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleVehicleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Brand</Label>
                 <Input 
@@ -185,7 +185,7 @@ export default function Customers() {
                 </datalist>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Plate Number</Label>
                 <Input value={vehicleForm.PlateNumber} onChange={e => setVehicleForm({...vehicleForm, PlateNumber: e.target.value.toUpperCase()})} required />
@@ -232,19 +232,20 @@ export default function Customers() {
           const custVehicles = vehicles.filter(v => v.CustomerId === cust.CustomerId);
           return (
             <Card key={cust.CustomerId}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
                 <div>
                   <CardTitle>{cust.FirstName} {cust.LastName}</CardTitle>
                   <p className="text-sm text-gray-500">{cust.MobileNumber || 'No contact info'}</p>
                 </div>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
-                  <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                  <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)} className="flex-1 sm:flex-none">Edit Info</Button>
+                  <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)} className="flex-1 sm:flex-none">Add Vehicle</Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0 sm:p-6">
                 {custVehicles.length > 0 ? (
-                  <Table>
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Plate Number</TableHead>
@@ -268,8 +269,9 @@ export default function Customers() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 ) : (
-                  <p className="text-sm text-gray-500 italic py-2">No vehicles registered.</p>
+                  <p className="text-sm text-gray-500 italic py-4 px-6">No vehicles registered.</p>
                 )}
               </CardContent>
             </Card>

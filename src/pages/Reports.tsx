@@ -52,7 +52,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Sales Reports</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Sales Reports</h1>
 
       <Tabs defaultValue="daily" className="w-full">
         <TabsList>
@@ -65,7 +65,7 @@ export default function Reports() {
             <CardHeader>
               <CardTitle>Daily Sales (Current Month)</CardTitle>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[300px] sm:h-[400px] p-2 sm:p-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={processData('daily')}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -83,7 +83,7 @@ export default function Reports() {
             <CardHeader>
               <CardTitle>Weekly Sales</CardTitle>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[300px] sm:h-[400px] p-2 sm:p-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={processData('weekly')}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -101,7 +101,7 @@ export default function Reports() {
             <CardHeader>
               <CardTitle>Monthly Sales</CardTitle>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[300px] sm:h-[400px] p-2 sm:p-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={processData('monthly')}>
                   <CartesianGrid strokeDasharray="3 3" />
