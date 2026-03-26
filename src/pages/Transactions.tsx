@@ -203,8 +203,8 @@ export default function Transactions() {
                   <SelectTrigger><SelectValue placeholder="Select a vehicle" /></SelectTrigger>
                   <SelectContent>
                     {availableVehicles.map(v => (
-                      <SelectItem key={v.VehicleId} value={v.VehicleId}>
-                        {v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel} ({v.VehicleSize})
+                      <SelectItem key={v.VehicleId} value={v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel}>
+                        {v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -235,7 +235,7 @@ export default function Transactions() {
               </div>
 
               {/* Package Selection */}
-              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel !== 'TRUCK' && (
+              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleBrand !== 'GENERAL VEHICLE' && (
                 <div className="space-y-2">
                   <Label>Select Package (Optional)</Label>
                   <Select value={selectedPackage} onValueChange={handlePackageChange}>

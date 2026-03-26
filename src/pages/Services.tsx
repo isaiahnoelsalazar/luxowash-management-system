@@ -220,11 +220,11 @@ export default function Services() {
                 <TableRow key={`${srv.ServiceId}-${index}`}>
                   <TableCell className="font-medium">{srv.ServiceId}</TableCell>
                   <TableCell>{srv.ServiceName}</TableCell>
-                  <TableCell>₱{srv.ServicePriceSizeS}</TableCell>
-                  <TableCell>₱{srv.ServicePriceSizeM}</TableCell>
-                  <TableCell>₱{srv.ServicePriceSizeL}</TableCell>
-                  <TableCell>₱{srv.ServicePriceSizeXL}</TableCell>
-                  <TableCell>₱{srv.ServicePriceSizeXXL}</TableCell>
+                  <TableCell>{srv.ServicePriceSizeS === -1 ? '' : `₱${srv.ServicePriceSizeS}`}</TableCell>
+                  <TableCell>{srv.ServicePriceSizeM === -1 ? '' : `₱${srv.ServicePriceSizeM}`}</TableCell>
+                  <TableCell>{srv.ServicePriceSizeL === -1 ? '' : `₱${srv.ServicePriceSizeL}`}</TableCell>
+                  <TableCell>{srv.ServicePriceSizeXL === -1 ? '' : `₱${srv.ServicePriceSizeXL}`}</TableCell>
+                  <TableCell>{srv.ServicePriceSizeXXL === -1 ? '' : `₱${srv.ServicePriceSizeXXL}`}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${srv.ServiceStatus === 'Available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {srv.ServiceStatus}

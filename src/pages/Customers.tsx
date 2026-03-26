@@ -188,7 +188,7 @@ export default function Customers() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Plate Number</Label>
-                <Input value={vehicleForm.PlateNumber} onChange={e => setVehicleForm({...vehicleForm, PlateNumber: e.target.value})} required />
+                <Input value={vehicleForm.PlateNumber} onChange={e => setVehicleForm({...vehicleForm, PlateNumber: e.target.value.toUpperCase()})} required />
               </div>
               <div className="space-y-2">
                 <Label>Size</Label>
