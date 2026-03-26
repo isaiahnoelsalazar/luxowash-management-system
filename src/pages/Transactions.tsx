@@ -500,16 +500,6 @@ export default function Transactions() {
                   <p className="font-medium">{selectedTransactionDetails.Extras}</p>
                 </div>
               )}
-
-              <div className="border-t pt-4 bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-                <div>
-                  <span className="font-semibold text-gray-700">Total Balance:</span>
-                  {selectedTransactionDetails.Discount > 0 && (
-                    <span className="text-sm text-gray-500 ml-2">({selectedTransactionDetails.Discount}% discount applied)</span>
-                  )}
-                </div>
-                <span className="text-2xl font-bold text-blue-600">₱{selectedTransactionDetails.TotalBalance?.toLocaleString()}</span>
-              </div>
             </div>
           )}
         </DialogContent>

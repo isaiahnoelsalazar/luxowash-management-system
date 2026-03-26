@@ -139,22 +139,30 @@ export default function Dashboard() {
       <div className="mt-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Links</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <Button render={<Link to="/transactions" />} nativeButton={false} className="h-24 flex flex-col items-center justify-center gap-2 text-lg">
-            <PlusCircle className="h-6 w-6" />
-            New Transaction
-          </Button>
-          <Button render={<Link to="/customers" />} nativeButton={false} variant="secondary" className="h-24 flex flex-col items-center justify-center gap-2 text-lg">
-            <Car className="h-6 w-6" />
-            Add Customer / Vehicle
-          </Button>
-          <Button render={<Link to="/billing" />} nativeButton={false} variant="outline" className="h-24 flex flex-col items-center justify-center gap-2 text-lg">
-            <CreditCard className="h-6 w-6" />
-            Process Payment
-          </Button>
-          <Button render={<Link to="/employees" />} nativeButton={false} variant="outline" className="h-24 flex flex-col items-center justify-center gap-2 text-lg">
-            <Clock className="h-6 w-6" />
-            Employee Time In/Out
-          </Button>
+          <Link to="/transactions" className="group flex flex-col items-center justify-center gap-3 p-6 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-700 rounded-xl border border-gray-200 hover:border-blue-200 transition-all hover:-translate-y-1 hover:shadow-md">
+            <div className="p-3 bg-blue-100 text-blue-600 rounded-full group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
+              <PlusCircle className="h-6 w-6" />
+            </div>
+            <span className="font-medium text-sm lg:text-base">New Transaction</span>
+          </Link>
+          <Link to="/customers" className="group flex flex-col items-center justify-center gap-3 p-6 bg-white hover:bg-purple-50 text-gray-700 hover:text-purple-700 rounded-xl border border-gray-200 hover:border-purple-200 transition-all hover:-translate-y-1 hover:shadow-md">
+            <div className="p-3 bg-purple-100 text-purple-600 rounded-full group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all">
+              <Car className="h-6 w-6" />
+            </div>
+            <span className="font-medium text-sm lg:text-base">Add Customer</span>
+          </Link>
+          <Link to="/billing" className="group flex flex-col items-center justify-center gap-3 p-6 bg-white hover:bg-emerald-50 text-gray-700 hover:text-emerald-700 rounded-xl border border-gray-200 hover:border-emerald-200 transition-all hover:-translate-y-1 hover:shadow-md">
+            <div className="p-3 bg-emerald-100 text-emerald-600 rounded-full group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+              <CreditCard className="h-6 w-6" />
+            </div>
+            <span className="font-medium text-sm lg:text-base">Process Payment</span>
+          </Link>
+          <Link to="/employees" className="group flex flex-col items-center justify-center gap-3 p-6 bg-white hover:bg-orange-50 text-gray-700 hover:text-orange-700 rounded-xl border border-gray-200 hover:border-orange-200 transition-all hover:-translate-y-1 hover:shadow-md">
+            <div className="p-3 bg-orange-100 text-orange-600 rounded-full group-hover:scale-110 group-hover:bg-orange-600 group-hover:text-white transition-all">
+              <Clock className="h-6 w-6" />
+            </div>
+            <span className="font-medium text-sm lg:text-base text-center">Employee Time In/Out</span>
+          </Link>
         </div>
       </div>
     </div>
