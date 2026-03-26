@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 export default function Employees() {
   const { employees, activeEmployees, loading, refreshEmployees, refreshActiveEmployees } = useData();
@@ -61,7 +62,7 @@ export default function Employees() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
+        <h1 className="text-3xl font-bold text-primary">Employees</h1>
         <Button onClick={openAdd}>Add Employee</Button>
       </div>
 
@@ -129,7 +130,12 @@ export default function Employees() {
                     <TableCell className="font-medium">{emp.FirstName} {emp.LastName}</TableCell>
                     <TableCell>{emp.MobileNumber || 'N/A'}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span className={cn(
+                        "px-2 py-1 rounded-full text-xs font-medium",
+                        isActive 
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                          : "bg-muted text-muted-foreground"
+                      )}>
                         {isActive ? 'Timed In' : 'Timed Out'}
                       </span>
                     </TableCell>

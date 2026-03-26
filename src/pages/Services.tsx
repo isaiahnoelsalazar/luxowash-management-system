@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export default function Services() {
   const { services, loading, refreshServices } = useData();
@@ -80,7 +81,7 @@ export default function Services() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Services</h1>
+        <h1 className="text-3xl font-bold text-primary">Services</h1>
         <Button onClick={openAdd}>Add Service</Button>
       </div>
 
@@ -191,7 +192,7 @@ export default function Services() {
           </DialogContent>
         </Dialog>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-card text-card-foreground border border-border rounded-lg shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -209,24 +210,29 @@ export default function Services() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4">Loading services...</TableCell>
+                <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">Loading services...</TableCell>
               </TableRow>
             ) : filteredServices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-4">No services found.</TableCell>
+                <TableCell colSpan={9} className="text-center py-4 text-muted-foreground">No services found.</TableCell>
               </TableRow>
             ) : (
               filteredServices.map((srv, index) => (
                 <TableRow key={`${srv.ServiceId}-${index}`}>
-                  <TableCell className="font-medium">{srv.ServiceId}</TableCell>
-                  <TableCell>{srv.ServiceName}</TableCell>
-                  <TableCell>{srv.ServicePriceSizeS === -1 ? '' : `₱${srv.ServicePriceSizeS}`}</TableCell>
-                  <TableCell>{srv.ServicePriceSizeM === -1 ? '' : `₱${srv.ServicePriceSizeM}`}</TableCell>
-                  <TableCell>{srv.ServicePriceSizeL === -1 ? '' : `₱${srv.ServicePriceSizeL}`}</TableCell>
-                  <TableCell>{srv.ServicePriceSizeXL === -1 ? '' : `₱${srv.ServicePriceSizeXL}`}</TableCell>
-                  <TableCell>{srv.ServicePriceSizeXXL === -1 ? '' : `₱${srv.ServicePriceSizeXXL}`}</TableCell>
+                  <TableCell className="font-medium text-foreground">{srv.ServiceId}</TableCell>
+                  <TableCell className="text-foreground">{srv.ServiceName}</TableCell>
+                  <TableCell className="text-foreground">{srv.ServicePriceSizeS === -1 ? '' : `₱${srv.ServicePriceSizeS}`}</TableCell>
+                  <TableCell className="text-foreground">{srv.ServicePriceSizeM === -1 ? '' : `₱${srv.ServicePriceSizeM}`}</TableCell>
+                  <TableCell className="text-foreground">{srv.ServicePriceSizeL === -1 ? '' : `₱${srv.ServicePriceSizeL}`}</TableCell>
+                  <TableCell className="text-foreground">{srv.ServicePriceSizeXL === -1 ? '' : `₱${srv.ServicePriceSizeXL}`}</TableCell>
+                  <TableCell className="text-foreground">{srv.ServicePriceSizeXXL === -1 ? '' : `₱${srv.ServicePriceSizeXXL}`}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${srv.ServiceStatus === 'Available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span className={cn(
+                      "px-2 py-1 rounded-full text-xs font-medium",
+                      srv.ServiceStatus === 'Available' 
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                        : "bg-destructive/10 text-destructive"
+                    )}>
                       {srv.ServiceStatus}
                     </span>
                   </TableCell>

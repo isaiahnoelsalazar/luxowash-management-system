@@ -24,6 +24,12 @@ export default function Transactions() {
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<string>('');
+
+  // Reset services and package when vehicle changes
+  React.useEffect(() => {
+    setSelectedServices([]);
+    setSelectedPackage('');
+  }, [selectedVehicle]);
   const [discount, setDiscount] = useState<number>(0);
   const [extras, setExtras] = useState<string>('');
   const [truckPrice, setTruckPrice] = useState<number>(0);
@@ -185,7 +191,7 @@ export default function Transactions() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
+        <h1 className="text-3xl font-bold text-primary">Transactions</h1>
         <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>New Transaction</Button>
       </div>
 
@@ -225,7 +231,7 @@ export default function Transactions() {
               <div className="space-y-2">
                 <Label>Assign Employees (Timed In & Available)</Label>
                 <div className="grid grid-cols-2 gap-2 border p-4 rounded-md">
-                  {availableEmployees.length === 0 && <p className="text-sm text-gray-500">No available employees.</p>}
+                  {availableEmployees.length === 0 && <p className="text-sm text-muted-foreground">No available employees.</p>}
                   {availableEmployees.map(emp => (
                     <div key={emp.EmployeeId} className="flex items-center space-x-2">
                       <Checkbox 
@@ -275,7 +281,21 @@ export default function Transactions() {
                       const vehicle = vehicles.find(v => `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` === selectedVehicle);
                       if (!vehicle) return true;
                       
+                      const brand = vehicle.VehicleBrand;
                       const model = vehicle.VehicleModel;
+
+                      // Rule: if brand is not "GENERAL VEHICLE" then do not show [S_VCBWE, S_VCBWM, S_VCBWT, S_VCBWP, S_VCA, S_VCW]
+                      const restrictedServices = ['S_VCBWE', 'S_VCBWM', 'S_VCBWT', 'S_VCBWP', 'S_VCA', 'S_VCW'];
+                      if (brand !== 'GENERAL VEHICLE' && restrictedServices.includes(srv.ServiceId)) {
+                        return false;
+                      }
+
+                      // Rule: if model is MOTORCYCLE, show S_RBWRM else do not show
+                      if (srv.ServiceId === 'S_RBWRM') {
+                        return model === 'MOTORCYCLE';
+                      }
+
+                      // Existing model-specific logic
                       if (model === 'E-BIKE') return ['S_VCBWE', 'S_VCA', 'S_VCW'].includes(srv.ServiceId);
                       if (model === 'MOTORCYCLE') return ['S_RBWRM', 'S_VCBWM', 'S_VCA', 'S_VCW'].includes(srv.ServiceId);
                       if (model === 'TRICYCLE') return srv.ServiceId === 'S_VCBWT';
@@ -353,9 +373,9 @@ export default function Transactions() {
               </div>
 
               {/* Total Calculation */}
-              <div className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-                <span className="font-semibold text-gray-700">Estimated Total:</span>
-                <span className="text-2xl font-bold text-blue-600">₱{calculateTotal().toLocaleString()}</span>
+              <div className="bg-muted/50 p-4 rounded-lg flex justify-between items-center">
+                <span className="font-semibold text-foreground">Estimated Total:</span>
+                <span className="text-2xl font-bold text-primary">₱{calculateTotal().toLocaleString()}</span>
               </div>
 
               <Button type="submit" className="w-full">Create Transaction</Button>
@@ -440,21 +460,21 @@ export default function Transactions() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Transaction ID</p>
-                  <p className="font-medium">{selectedTransactionDetails.TransactionId}</p>
+                  <p className="text-sm text-muted-foreground">Transaction ID</p>
+                  <p className="font-medium text-foreground">{selectedTransactionDetails.TransactionId}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Date</p>
-                  <p className="font-medium">{selectedTransactionDetails.DateCreated ? format(new Date(selectedTransactionDetails.DateCreated), 'MMM d, yyyy h:mm a') : 'N/A'}</p>
+                  <p className="text-sm text-muted-foreground">Date</p>
+                  <p className="font-medium text-foreground">{selectedTransactionDetails.DateCreated ? format(new Date(selectedTransactionDetails.DateCreated), 'MMM d, yyyy h:mm a') : 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Vehicle</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-muted-foreground">Vehicle</p>
+                  <p className="font-medium text-foreground">
                     {vehicles.find(v => v.VehicleId === selectedTransactionDetails.VehicleId)?.PlateNumber || 'Unknown'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-sm text-muted-foreground">Status</p>
                   <Badge variant={selectedTransactionDetails.TransactionStatus === 'Completed' ? 'default' : selectedTransactionDetails.TransactionStatus === 'Cancelled' ? 'destructive' : 'secondary'}>
                     {selectedTransactionDetails.TransactionStatus}
                   </Badge>
@@ -462,12 +482,12 @@ export default function Transactions() {
               </div>
 
               <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 mb-2">Assigned Employees</p>
+                <p className="text-sm text-muted-foreground mb-2">Assigned Employees</p>
                 <div className="flex flex-wrap gap-2">
                   {selectedTransactionDetails.EmployeeIdList?.split(',').map((id: string) => {
                     const emp = allEmployees.find(e => e.EmployeeId === id.trim());
                     return (
-                      <Badge key={id} variant="outline">
+                      <Badge key={id} variant="outline" className="text-foreground border-border">
                         {emp ? `${emp.FirstName} ${emp.LastName}` : id.trim()}
                       </Badge>
                     );
@@ -476,9 +496,9 @@ export default function Transactions() {
               </div>
 
               <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 mb-2">Package & Services</p>
+                <p className="text-sm text-muted-foreground mb-2">Package & Services</p>
                 {selectedTransactionDetails.PackageId && selectedTransactionDetails.PackageId !== 'none' && (
-                  <p className="font-medium mb-1">
+                  <p className="font-medium text-foreground mb-1">
                     Package: {packages.find(p => p.PackageId === selectedTransactionDetails.PackageId)?.PackageName || selectedTransactionDetails.PackageId}
                   </p>
                 )}
@@ -486,7 +506,7 @@ export default function Transactions() {
                   {selectedTransactionDetails.ServiceIdList?.split(',').filter(Boolean).map((id: string) => {
                     const srv = services.find(s => s.ServiceId === id.trim());
                     return (
-                      <Badge key={id} variant="secondary">
+                      <Badge key={id} variant="secondary" className="text-foreground">
                         {srv ? srv.ServiceName : id.trim()}
                       </Badge>
                     );
@@ -496,8 +516,8 @@ export default function Transactions() {
 
               {selectedTransactionDetails.Extras && (
                 <div className="border-t pt-4">
-                  <p className="text-sm text-gray-500">Extras & Notes</p>
-                  <p className="font-medium">{selectedTransactionDetails.Extras}</p>
+                  <p className="text-sm text-muted-foreground">Extras & Notes</p>
+                  <p className="font-medium text-foreground">{selectedTransactionDetails.Extras}</p>
                 </div>
               )}
             </div>

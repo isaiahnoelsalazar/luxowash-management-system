@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export default function Packages() {
   const { packages, loading, refreshPackages } = useData();
@@ -84,7 +85,7 @@ export default function Packages() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Packages</h1>
+        <h1 className="text-3xl font-bold text-primary">Packages</h1>
         <Button onClick={openAdd}>Add Package</Button>
       </div>
 
@@ -204,7 +205,7 @@ export default function Packages() {
           </DialogContent>
         </Dialog>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-card text-card-foreground border border-border rounded-lg shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -223,25 +224,30 @@ export default function Packages() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-4">Loading packages...</TableCell>
+                <TableCell colSpan={10} className="text-center py-4 text-muted-foreground">Loading packages...</TableCell>
               </TableRow>
             ) : filteredPackages.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-4">No packages found.</TableCell>
+                <TableCell colSpan={10} className="text-center py-4 text-muted-foreground">No packages found.</TableCell>
               </TableRow>
             ) : (
               filteredPackages.map((pkg, index) => (
                 <TableRow key={`${pkg.PackageId}-${index}`}>
-                  <TableCell className="font-medium">{pkg.PackageId}</TableCell>
-                  <TableCell>{pkg.PackageName}</TableCell>
-                  <TableCell className="max-w-xs truncate" title={pkg.PackageDetails}>{pkg.PackageDetails}</TableCell>
-                  <TableCell>₱{pkg.PackagePriceSizeS}</TableCell>
-                  <TableCell>₱{pkg.PackagePriceSizeM}</TableCell>
-                  <TableCell>₱{pkg.PackagePriceSizeL}</TableCell>
-                  <TableCell>₱{pkg.PackagePriceSizeXL}</TableCell>
-                  <TableCell>₱{pkg.PackagePriceSizeXXL}</TableCell>
+                  <TableCell className="font-medium text-foreground">{pkg.PackageId}</TableCell>
+                  <TableCell className="text-foreground">{pkg.PackageName}</TableCell>
+                  <TableCell className="max-w-xs truncate text-muted-foreground" title={pkg.PackageDetails}>{pkg.PackageDetails}</TableCell>
+                  <TableCell className="text-foreground">₱{pkg.PackagePriceSizeS}</TableCell>
+                  <TableCell className="text-foreground">₱{pkg.PackagePriceSizeM}</TableCell>
+                  <TableCell className="text-foreground">₱{pkg.PackagePriceSizeL}</TableCell>
+                  <TableCell className="text-foreground">₱{pkg.PackagePriceSizeXL}</TableCell>
+                  <TableCell className="text-foreground">₱{pkg.PackagePriceSizeXXL}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${pkg.PackageStatus === 'Available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span className={cn(
+                      "px-2 py-1 rounded-full text-xs font-medium",
+                      pkg.PackageStatus === 'Available' 
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                        : "bg-destructive/10 text-destructive"
+                    )}>
                       {pkg.PackageStatus}
                     </span>
                   </TableCell>

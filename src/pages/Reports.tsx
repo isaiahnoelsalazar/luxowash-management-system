@@ -52,7 +52,7 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Sales Reports</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary">Sales Reports</h1>
 
       <Tabs defaultValue="daily" className="w-full">
         <TabsList>

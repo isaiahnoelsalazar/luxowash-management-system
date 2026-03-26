@@ -51,7 +51,7 @@ export default function Users() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">User Accounts</h1>
+        <h1 className="text-3xl font-bold text-primary">User Accounts</h1>
         <Button onClick={openAdd}>Add User</Button>
       </div>
 

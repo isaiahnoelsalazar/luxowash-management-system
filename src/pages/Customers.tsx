@@ -98,7 +98,7 @@ export default function Customers() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Customers & Vehicles</h1>
+        <h1 className="text-3xl font-bold text-primary">Customers & Vehicles</h1>
         <Button onClick={openAddCustomer}>Add New Customer</Button>
       </div>
 
@@ -234,8 +234,8 @@ export default function Customers() {
             <Card key={cust.CustomerId}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                  <CardTitle>{cust.FirstName} {cust.LastName}</CardTitle>
-                  <p className="text-sm text-gray-500">{cust.MobileNumber || 'No contact info'}</p>
+                  <CardTitle className="text-foreground">{cust.FirstName} {cust.LastName}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{cust.MobileNumber || 'No contact info'}</p>
                 </div>
                 <div className="space-x-2">
                   <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
@@ -269,7 +269,7 @@ export default function Customers() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <p className="text-sm text-gray-500 italic py-2">No vehicles registered.</p>
+                  <p className="text-sm text-muted-foreground italic py-2">No vehicles registered.</p>
                 )}
               </CardContent>
             </Card>

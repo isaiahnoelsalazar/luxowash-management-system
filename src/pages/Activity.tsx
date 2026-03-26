@@ -18,7 +18,7 @@ export default function Activity() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Activity Log</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary">Activity Log</h1>
       </div>
 
       <div className="mb-4">
@@ -46,12 +46,12 @@ export default function Activity() {
               {filteredActivities.length > 0 ? (
                 filteredActivities.map((a, index) => (
                   <TableRow key={index}>
-                    <TableCell className="font-medium text-gray-700">{a.ActivityMessage}</TableCell>
+                    <TableCell className="font-medium text-foreground">{a.ActivityMessage}</TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell className="text-center text-gray-500 py-8">No activity recorded yet.</TableCell>
+                  <TableCell className="text-center text-muted-foreground py-8">No activity recorded yet.</TableCell>
                 </TableRow>
               )}
             </TableBody>

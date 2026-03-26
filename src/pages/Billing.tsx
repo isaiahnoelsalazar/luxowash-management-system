@@ -61,7 +61,7 @@ export default function Billing() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Billing & Payments</h1>
+        <h1 className="text-3xl font-bold text-primary">Billing & Payments</h1>
       </div>
 
       <div className="mb-4">
@@ -131,14 +131,14 @@ export default function Billing() {
           </DialogHeader>
           {selectedBill && (
             <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-muted p-4 rounded-lg">
                 <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">Total Amount:</span>
-                  <span className="font-bold text-lg">₱{selectedBill.TransactionBalance.toLocaleString()}</span>
+                  <span className="text-muted-foreground">Total Amount:</span>
+                  <span className="font-bold text-lg text-foreground">₱{selectedBill.TransactionBalance.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Discount Applied:</span>
-                  <span>{selectedBill.TransactionDiscount}%</span>
+                  <span className="text-muted-foreground">Discount Applied:</span>
+                  <span className="text-foreground">{selectedBill.TransactionDiscount}%</span>
                 </div>
               </div>
               <Button onClick={handlePayment} className="w-full">Confirm Full Payment</Button>
@@ -154,31 +154,31 @@ export default function Billing() {
             <DialogTitle className="text-center">Official Receipt</DialogTitle>
           </DialogHeader>
           {selectedBill && (
-            <div className="space-y-6 p-4 border rounded-md bg-white font-mono text-sm">
-              <div className="text-center border-b pb-4">
-                <h2 className="font-bold text-xl">LUXOWASH</h2>
-                <p className="text-gray-500">Carwash & Detailing Services</p>
-                <p className="text-gray-500 mt-2">Receipt #: {selectedBill.BillingId.substring(0, 8).toUpperCase()}</p>
-                <p className="text-gray-500">Date: {format(new Date(selectedBill.DateUpdated || selectedBill.DateCreated), 'MMM d, yyyy h:mm a')}</p>
+            <div className="space-y-6 p-4 border rounded-md bg-card font-mono text-sm text-card-foreground">
+              <div className="text-center border-b pb-4 border-border">
+                <h2 className="font-bold text-xl text-foreground">LUXOWASH</h2>
+                <p className="text-muted-foreground">Carwash & Detailing Services</p>
+                <p className="text-muted-foreground mt-2">Receipt #: {selectedBill.BillingId.substring(0, 8).toUpperCase()}</p>
+                <p className="text-muted-foreground">Date: {format(new Date(selectedBill.DateUpdated || selectedBill.DateCreated), 'MMM d, yyyy h:mm a')}</p>
               </div>
               
-              <div className="space-y-2 py-4 border-b">
+              <div className="space-y-2 py-4 border-b border-border">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>₱{(selectedBill.TransactionBalance / (1 - (selectedBill.TransactionDiscount/100))).toLocaleString()}</span>
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-foreground">₱{(selectedBill.TransactionBalance / (1 - (selectedBill.TransactionDiscount/100))).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-red-600">
+                <div className="flex justify-between text-destructive">
                   <span>Discount ({selectedBill.TransactionDiscount}%)</span>
                   <span>-₱{((selectedBill.TransactionBalance / (1 - (selectedBill.TransactionDiscount/100))) * (selectedBill.TransactionDiscount/100)).toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center font-bold text-lg pt-2">
+              <div className="flex justify-between items-center font-bold text-lg pt-2 text-foreground">
                 <span>TOTAL PAID</span>
                 <span>₱{selectedBill.BalancePaid.toLocaleString()}</span>
               </div>
               
-              <div className="text-center pt-8 text-gray-500 text-xs">
+              <div className="text-center pt-8 text-muted-foreground text-xs">
                 <p>Thank you for choosing Luxowash!</p>
                 <p>Please come again.</p>
               </div>
@@ -196,16 +196,16 @@ export default function Billing() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Billing ID</p>
-                  <p className="font-medium">{selectedBill.BillingId}</p>
+                  <p className="text-sm text-muted-foreground">Billing ID</p>
+                  <p className="font-medium text-foreground">{selectedBill.BillingId}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Date</p>
-                  <p className="font-medium">{selectedBill.DateCreated ? format(new Date(selectedBill.DateCreated), 'MMM d, yyyy h:mm a') : 'N/A'}</p>
+                  <p className="text-sm text-muted-foreground">Date</p>
+                  <p className="font-medium text-foreground">{selectedBill.DateCreated ? format(new Date(selectedBill.DateCreated), 'MMM d, yyyy h:mm a') : 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Vehicle</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-muted-foreground">Vehicle</p>
+                  <p className="font-medium text-foreground">
                     {(() => {
                       const trans = transactions.find(t => t.TransactionId === selectedBill.BillingId);
                       const vehicle = trans ? vehicles.find(v => v.VehicleId === trans.VehicleId) : null;
@@ -214,21 +214,21 @@ export default function Billing() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-sm text-muted-foreground">Status</p>
                   <Badge variant={selectedBill.BillingStatus === 'Paid' ? 'default' : 'destructive'}>
                     {selectedBill.BillingStatus}
                   </Badge>
                 </div>
               </div>
 
-              <div className="border-t pt-4 flex justify-between items-center">
+              <div className="border-t border-border pt-4 flex justify-between items-center">
                 <div>
-                  <p className="text-sm text-gray-500">Discount</p>
-                  <p className="font-medium">{selectedBill.TransactionDiscount || 0}%</p>
+                  <p className="text-sm text-muted-foreground">Discount</p>
+                  <p className="font-medium text-foreground">{selectedBill.TransactionDiscount || 0}%</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Total Balance</p>
-                  <p className="text-2xl font-bold text-blue-600">₱{selectedBill.TransactionBalance?.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Total Balance</p>
+                  <p className="text-2xl font-bold text-primary">₱{selectedBill.TransactionBalance?.toLocaleString()}</p>
                 </div>
               </div>
             </div>
