@@ -26,6 +26,8 @@ export default function Transactions() {
   const [selectedPackage, setSelectedPackage] = useState<string>('');
   const [discount, setDiscount] = useState<number>(0);
   const [extras, setExtras] = useState<string>('');
+  const [truckPrice, setTruckPrice] = useState<number>(0);
+  const [truckNotes, setTruckNotes] = useState<string>('');
 
   const getServicesInPackage = (pkgId: string) => {
     if (!pkgId || pkgId === 'none') return [];
@@ -45,27 +47,36 @@ export default function Transactions() {
   const calculateTotal = () => {
     let total = 0;
     const vehicle = vehicles.find(v => v.VehicleId === selectedVehicle);
-    const size = vehicle ? vehicle.VehicleSize : 'M';
-    const sizeKey = `Size${size}`;
+    
+    if (vehicle?.VehicleModel === 'TRUCK') {
+      total = truckPrice;
+    } else {
+      const size = vehicle ? vehicle.VehicleSize : 'M';
+      const sizeKey = `Size${size}`;
 
-    // Add Package Price
-    if (selectedPackage && selectedPackage !== 'none') {
-      const pkg = packages.find(p => p.PackageId === selectedPackage);
-      if (pkg) {
-        total += pkg[`PackagePrice${sizeKey}`] || 0;
-      }
-    }
-
-    // Add Services Price
-    const includedServices = getServicesInPackage(selectedPackage);
-    selectedServices.forEach(srvName => {
-      if (!includedServices.includes(srvName)) {
-        const srv = services.find(s => s.ServiceName === srvName);
-        if (srv) {
-          total += srv[`ServicePrice${sizeKey}`] || 0;
+      // Add Package Price
+      if (selectedPackage && selectedPackage !== 'none') {
+        const pkg = packages.find(p => p.PackageId === selectedPackage);
+        if (pkg) {
+          total += pkg[`PackagePrice${sizeKey}`] || 0;
         }
       }
-    });
+
+      // Add Services Price
+      const includedServices = getServicesInPackage(selectedPackage);
+      selectedServices.forEach(srvName => {
+        if (!includedServices.includes(srvName)) {
+          const srv = services.find(s => s.ServiceName === srvName);
+          if (srv) {
+            if (vehicle?.VehicleModel === 'MOTORCYCLE' && srv.ServiceId === 'S_RBWRM' && size === 'M') {
+              total += srv.ServicePriceSizeL || 0;
+            } else {
+              total += srv[`ServicePrice${sizeKey}`] || 0;
+            }
+          }
+        }
+      });
+    }
 
     // Apply Discount
     if (discount > 0) {
@@ -84,11 +95,14 @@ export default function Transactions() {
 
     const totalBalance = calculateTotal();
 
+    const isTruck = vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel === 'TRUCK';
+    const finalExtras = isTruck ? (extras ? `${extras} | Notes: ${truckNotes}` : `Notes: ${truckNotes}`) : extras;
+
     const payload = {
       EmployeeIdList: selectedEmployees.join(','),
-      ServiceIdList: selectedServices.map(name => services.find(s => s.ServiceName === name)?.ServiceId).filter(Boolean).join(','),
-      PackageId: selectedPackage,
-      Extras: extras,
+      ServiceIdList: isTruck ? '' : selectedServices.map(name => services.find(s => s.ServiceName === name)?.ServiceId).filter(Boolean).join(','),
+      PackageId: isTruck ? '' : selectedPackage,
+      Extras: finalExtras,
       VehicleId: selectedVehicle,
       TotalBalance: totalBalance,
       Discount: discount,
@@ -112,6 +126,8 @@ export default function Transactions() {
     setSelectedPackage('');
     setDiscount(0);
     setExtras('');
+    setTruckPrice(0);
+    setTruckNotes('');
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -219,46 +235,86 @@ export default function Transactions() {
               </div>
 
               {/* Package Selection */}
-              <div className="space-y-2">
-                <Label>Select Package (Optional)</Label>
-                <Select value={selectedPackage} onValueChange={handlePackageChange}>
-                  <SelectTrigger><SelectValue placeholder="Select a package" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {packages.map(p => (
-                      <SelectItem key={p.PackageId} value={p.PackageId}>
-                        {p.PackageName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel !== 'TRUCK' && (
+                <div className="space-y-2">
+                  <Label>Select Package (Optional)</Label>
+                  <Select value={selectedPackage} onValueChange={handlePackageChange}>
+                    <SelectTrigger><SelectValue placeholder="Select a package" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {packages.map(p => (
+                        <SelectItem key={p.PackageId} value={p.PackageId}>
+                          {p.PackageName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Services Selection */}
-              <div className="space-y-2">
-                <Label>Additional Services</Label>
-                <div className="grid grid-cols-2 gap-2 border p-4 rounded-md max-h-48 overflow-y-auto">
-                  {services.map(srv => {
-                    const isIncluded = getServicesInPackage(selectedPackage).includes(srv.ServiceName);
-                    return (
-                      <div key={srv.ServiceName} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`srv-${srv.ServiceName}`} 
-                          checked={isIncluded || selectedServices.includes(srv.ServiceName)}
-                          disabled={isIncluded}
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelectedServices([...selectedServices, srv.ServiceName]);
-                            else setSelectedServices(selectedServices.filter(name => name !== srv.ServiceName));
-                          }}
-                        />
-                        <label htmlFor={`srv-${srv.ServiceName}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          {srv.ServiceName} {isIncluded && <span className="text-xs text-blue-500 ml-1">(Included)</span>}
-                        </label>
-                      </div>
-                    );
-                  })}
+              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel !== 'TRUCK' && (
+                <div className="space-y-2">
+                  <Label>Additional Services</Label>
+                  <div className="grid grid-cols-2 gap-2 border p-4 rounded-md max-h-48 overflow-y-auto">
+                    {services.filter(srv => {
+                      const vehicle = vehicles.find(v => v.VehicleId === selectedVehicle);
+                      if (!vehicle) return true;
+                      
+                      const model = vehicle.VehicleModel;
+                      if (model === 'E-BIKE') return ['S_VCBWE', 'S_VCA', 'S_VCW'].includes(srv.ServiceId);
+                      if (model === 'MOTORCYCLE') return ['S_RBWRM', 'S_VCBWM', 'S_VCA', 'S_VCW'].includes(srv.ServiceId);
+                      if (model === 'TRICYCLE') return srv.ServiceId === 'S_VCBWT';
+                      if (model === 'PUV (JEEP)') return srv.ServiceId === 'S_VCBWP';
+                      
+                      return true;
+                    }).map(srv => {
+                      const isIncluded = getServicesInPackage(selectedPackage).includes(srv.ServiceName);
+                      return (
+                        <div key={srv.ServiceName} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`srv-${srv.ServiceName}`} 
+                            checked={isIncluded || selectedServices.includes(srv.ServiceName)}
+                            disabled={isIncluded}
+                            onCheckedChange={(checked) => {
+                              if (checked) setSelectedServices([...selectedServices, srv.ServiceName]);
+                              else setSelectedServices(selectedServices.filter(name => name !== srv.ServiceName));
+                            }}
+                          />
+                          <label htmlFor={`srv-${srv.ServiceName}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            {srv.ServiceName} {isIncluded && <span className="text-xs text-blue-500 ml-1">(Included)</span>}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Truck Specific Fields */}
+              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel === 'TRUCK' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Negotiated Price (₱)</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      value={truckPrice} 
+                      onChange={e => setTruckPrice(Number(e.target.value))} 
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Notes / What to do</Label>
+                    <Input 
+                      value={truckNotes} 
+                      onChange={e => setTruckNotes(e.target.value)} 
+                      placeholder="Enter details..."
+                      required
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Discount & Extras */}
               <div className="grid grid-cols-2 gap-4">
@@ -409,10 +465,20 @@ export default function Transactions() {
 
               {selectedTransactionDetails.Extras && (
                 <div className="border-t pt-4">
-                  <p className="text-sm text-gray-500">Extras</p>
+                  <p className="text-sm text-gray-500">Extras & Notes</p>
                   <p className="font-medium">{selectedTransactionDetails.Extras}</p>
                 </div>
               )}
+
+              <div className="border-t pt-4 bg-gray-50 p-4 rounded-lg flex justify-between items-center">
+                <div>
+                  <span className="font-semibold text-gray-700">Total Balance:</span>
+                  {selectedTransactionDetails.Discount > 0 && (
+                    <span className="text-sm text-gray-500 ml-2">({selectedTransactionDetails.Discount}% discount applied)</span>
+                  )}
+                </div>
+                <span className="text-2xl font-bold text-blue-600">₱{selectedTransactionDetails.TotalBalance?.toLocaleString()}</span>
+              </div>
             </div>
           )}
         </DialogContent>

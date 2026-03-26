@@ -76,7 +76,12 @@ export default function Customers() {
   };
 
   const openEditVehicle = (veh: any) => {
-    setVehicleForm(veh);
+    let size = veh.VehicleSize;
+    if (veh.VehicleModel === 'TRUCK') size = 'N/A';
+    else if (veh.VehicleModel === 'TRICYCLE' || veh.VehicleModel === 'PUV (JEEP)') size = 'M';
+    else if ((veh.VehicleModel === 'E-BIKE' || veh.VehicleModel === 'MOTORCYCLE') && !['S', 'M', 'L'].includes(size)) size = 'M';
+    
+    setVehicleForm({ ...veh, VehicleSize: size });
     setIsVehicleDialogOpen(true);
   };
 
@@ -159,7 +164,16 @@ export default function Customers() {
                 <Input 
                   list="vehicle-models"
                   value={vehicleForm.VehicleModel} 
-                  onChange={e => setVehicleForm({...vehicleForm, VehicleModel: e.target.value})} 
+                  onChange={e => {
+                    const newModel = e.target.value;
+                    let newSize = vehicleForm.VehicleSize;
+                    if (newModel === 'TRUCK') newSize = 'N/A';
+                    else if (newModel === 'TRICYCLE' || newModel === 'PUV (JEEP)') newSize = 'M';
+                    else if ((newModel === 'E-BIKE' || newModel === 'MOTORCYCLE') && !['S', 'M', 'L'].includes(newSize)) newSize = 'M';
+                    else if (newSize === 'N/A') newSize = 'M';
+                    
+                    setVehicleForm({...vehicleForm, VehicleModel: newModel, VehicleSize: newSize});
+                  }} 
                   required 
                 />
                 <datalist id="vehicle-models">
@@ -178,14 +192,32 @@ export default function Customers() {
               </div>
               <div className="space-y-2">
                 <Label>Size</Label>
-                <Select value={vehicleForm.VehicleSize} onValueChange={v => setVehicleForm({...vehicleForm, VehicleSize: v})}>
+                <Select 
+                  value={vehicleForm.VehicleSize} 
+                  onValueChange={v => setVehicleForm({...vehicleForm, VehicleSize: v})}
+                  disabled={vehicleForm.VehicleModel === 'TRUCK' || vehicleForm.VehicleModel === 'TRICYCLE' || vehicleForm.VehicleModel === 'PUV (JEEP)'}
+                >
                   <SelectTrigger><SelectValue placeholder="Select size" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="S">Small (S)</SelectItem>
-                    <SelectItem value="M">Medium (M)</SelectItem>
-                    <SelectItem value="L">Large (L)</SelectItem>
-                    <SelectItem value="XL">Extra Large (XL)</SelectItem>
-                    <SelectItem value="XXL">XXL</SelectItem>
+                    {vehicleForm.VehicleModel === 'TRUCK' ? (
+                      <SelectItem value="N/A">N/A</SelectItem>
+                    ) : vehicleForm.VehicleModel === 'TRICYCLE' || vehicleForm.VehicleModel === 'PUV (JEEP)' ? (
+                      <SelectItem value="M">Medium (M)</SelectItem>
+                    ) : vehicleForm.VehicleModel === 'E-BIKE' || vehicleForm.VehicleModel === 'MOTORCYCLE' ? (
+                      <>
+                        <SelectItem value="S">Small (S)</SelectItem>
+                        <SelectItem value="M">Medium (M)</SelectItem>
+                        <SelectItem value="L">Large (L)</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="S">Small (S)</SelectItem>
+                        <SelectItem value="M">Medium (M)</SelectItem>
+                        <SelectItem value="L">Large (L)</SelectItem>
+                        <SelectItem value="XL">Extra Large (XL)</SelectItem>
+                        <SelectItem value="XXL">XXL</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
