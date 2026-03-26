@@ -79,9 +79,9 @@ export default function Services() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Services</h1>
-        <Button onClick={openAdd} className="w-full sm:w-auto">Add Service</Button>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Services</h1>
+        <Button onClick={openAdd}>Add Service</Button>
       </div>
 
       <div className="mb-4">
@@ -94,12 +94,12 @@ export default function Services() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit Service' : 'Add Service'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Service ID</Label>
                   <Input 
@@ -120,7 +120,7 @@ export default function Services() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Price (Size S)</Label>
                   <Input 
@@ -191,7 +191,7 @@ export default function Services() {
           </DialogContent>
         </Dialog>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

@@ -50,9 +50,9 @@ export default function Users() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">User Accounts</h1>
-        <Button onClick={openAdd} className="w-full sm:w-auto">Add User</Button>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">User Accounts</h1>
+        <Button onClick={openAdd}>Add User</Button>
       </div>
 
       <div className="mb-4">
@@ -65,7 +65,7 @@ export default function Users() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="w-[95vw] max-w-md p-4 sm:p-6">
+          <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit User Password' : 'Add User'}</DialogTitle>
             </DialogHeader>
@@ -87,9 +87,8 @@ export default function Users() {
         <CardHeader>
           <CardTitle>System Users</CardTitle>
         </CardHeader>
-        <CardContent className="p-0 sm:p-6">
-          <div className="overflow-x-auto">
-            <Table>
+        <CardContent>
+          <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Username</TableHead>
@@ -107,7 +106,6 @@ export default function Users() {
               ))}
             </TableBody>
           </Table>
-          </div>
         </CardContent>
       </Card>
     </div>
