@@ -46,7 +46,8 @@ export default function Transactions() {
 
   const calculateTotal = () => {
     let total = 0;
-    const vehicle = vehicles.find(v => v.VehicleId === selectedVehicle);
+    const vehicleId = selectedVehicle ? selectedVehicle.split(':')[0] : '';
+    const vehicle = vehicles.find(v => v.VehicleId === vehicleId);
     
     if (vehicle?.VehicleModel === 'TRUCK') {
       total = truckPrice;
@@ -95,7 +96,8 @@ export default function Transactions() {
 
     const totalBalance = calculateTotal();
 
-    const isTruck = vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel === 'TRUCK';
+    const vehicleId = selectedVehicle ? selectedVehicle.split(':')[0] : '';
+    const isTruck = vehicles.find(v => v.VehicleId === vehicleId)?.VehicleModel === 'TRUCK';
     const finalExtras = isTruck ? (extras ? `${extras} | Notes: ${truckNotes}` : `Notes: ${truckNotes}`) : extras;
 
     const payload = {
@@ -103,7 +105,7 @@ export default function Transactions() {
       ServiceIdList: isTruck ? '' : selectedServices.map(name => services.find(s => s.ServiceName === name)?.ServiceId).filter(Boolean).join(','),
       PackageId: isTruck ? '' : selectedPackage,
       Extras: finalExtras,
-      VehicleId: selectedVehicle,
+      VehicleId: vehicleId,
       TotalBalance: totalBalance,
       Discount: discount,
       TransactionStatus: 'Ready'
@@ -200,10 +202,18 @@ export default function Transactions() {
               <div className="space-y-2">
                 <Label>Select Vehicle (Available)</Label>
                 <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
-                  <SelectTrigger><SelectValue placeholder="Select a vehicle" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a vehicle">
+                      {selectedVehicle ? (() => {
+                        const vId = selectedVehicle.split(':')[0];
+                        const v = availableVehicles.find(v => v.VehicleId === vId);
+                        return v ? `${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}` : undefined;
+                      })() : undefined}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {availableVehicles.map(v => (
-                      <SelectItem key={v.VehicleId} value={v.PlateNumber + " - " + v.VehicleBrand + " " + v.VehicleModel}>
+                      <SelectItem key={v.VehicleId} value={`${v.VehicleId}:${v.PlateNumber} - ${v.VehicleBrand} ${v.VehicleModel}`}>
                         {v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel}
                       </SelectItem>
                     ))}
@@ -235,7 +245,7 @@ export default function Transactions() {
               </div>
 
               {/* Package Selection */}
-              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleBrand !== 'GENERAL VEHICLE' && (
+              {vehicles.find(v => v.VehicleId === (selectedVehicle ? selectedVehicle.split(':')[0] : ''))?.VehicleBrand !== 'GENERAL VEHICLE' && (
                 <div className="space-y-2">
                   <Label>Select Package (Optional)</Label>
                   <Select value={selectedPackage} onValueChange={handlePackageChange}>
@@ -253,12 +263,13 @@ export default function Transactions() {
               )}
 
               {/* Services Selection */}
-              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel !== 'TRUCK' && (
+              {vehicles.find(v => v.VehicleId === (selectedVehicle ? selectedVehicle.split(':')[0] : ''))?.VehicleModel !== 'TRUCK' && (
                 <div className="space-y-2">
                   <Label>Additional Services</Label>
                   <div className="grid grid-cols-2 gap-2 border p-4 rounded-md max-h-48 overflow-y-auto">
                     {services.filter(srv => {
-                      const vehicle = vehicles.find(v => v.VehicleId === selectedVehicle);
+                      const vehicleId = selectedVehicle ? selectedVehicle.split(':')[0] : '';
+                      const vehicle = vehicles.find(v => v.VehicleId === vehicleId);
                       if (!vehicle) return true;
                       
                       const model = vehicle.VehicleModel;
@@ -292,7 +303,7 @@ export default function Transactions() {
               )}
 
               {/* Truck Specific Fields */}
-              {vehicles.find(v => v.VehicleId === selectedVehicle)?.VehicleModel === 'TRUCK' && (
+              {vehicles.find(v => v.VehicleId === (selectedVehicle ? selectedVehicle.split(':')[0] : ''))?.VehicleModel === 'TRUCK' && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Negotiated Price (₱)</Label>
