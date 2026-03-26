@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,16 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 export default function Transactions() {
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [activeEmployees, setActiveEmployees] = useState<any[]>([]);
-  const [allEmployees, setAllEmployees] = useState<any[]>([]);
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
-  const [packages, setPackages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { transactions, activeEmployees, employees: allEmployees, vehicles, services, packages, loading, refreshTransactions } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedTransactionDetails, setSelectedTransactionDetails] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form State
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -30,33 +26,6 @@ export default function Transactions() {
   const [selectedPackage, setSelectedPackage] = useState<string>('');
   const [discount, setDiscount] = useState<number>(0);
   const [extras, setExtras] = useState<string>('');
-
-  const fetchData = async () => {
-    try {
-      const [transRes, empRes, allEmpRes, vehRes, servRes, packRes] = await Promise.all([
-        api.get('/transactions'),
-        api.get('/employees/time/active'),
-        api.get('/employees'),
-        api.get('/vehicles'),
-        api.get('/services'),
-        api.get('/packages'),
-      ]);
-      setTransactions(transRes);
-      setActiveEmployees(empRes);
-      setAllEmployees(allEmpRes);
-      setVehicles(vehRes);
-      setServices(servRes);
-      setPackages(packRes);
-    } catch (error) {
-      console.error('Failed to fetch data', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const getServicesInPackage = (pkgId: string) => {
     if (!pkgId || pkgId === 'none') return [];
@@ -130,7 +99,7 @@ export default function Transactions() {
       await api.post('/transactions', payload);
       setIsDialogOpen(false);
       resetForm();
-      fetchData();
+      refreshTransactions();
     } catch (error) {
       console.error('Failed to create transaction', error);
     }
@@ -148,7 +117,7 @@ export default function Transactions() {
   const updateStatus = async (id: string, status: string) => {
     try {
       await api.put('/transactions', { TransactionId: id, TransactionStatus: status });
-      fetchData();
+      refreshTransactions();
     } catch (error) {
       console.error('Failed to update status', error);
     }
@@ -170,25 +139,54 @@ export default function Transactions() {
 
   const availableEmployees = activeEmployees.filter(emp => !busyEmployeeIds.has(emp.EmployeeId));
 
+  const busyVehicleIds = new Set<string>();
+  transactions.forEach(t => {
+    if (t.TransactionStatus === 'Ready' || t.TransactionStatus === 'In Progress') {
+      busyVehicleIds.add(t.VehicleId);
+    }
+  });
+
+  const availableVehicles = vehicles.filter(v => !busyVehicleIds.has(v.VehicleId));
+
+  const filteredTransactions = transactions.filter(t => {
+    const vehicle = vehicles.find(v => v.VehicleId === t.VehicleId);
+    const plate = vehicle ? vehicle.PlateNumber.toLowerCase() : '';
+    const id = t.TransactionId.toLowerCase();
+    const status = t.TransactionStatus.toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return plate.includes(query) || id.includes(query) || status.includes(query);
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
         <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>New Transaction</Button>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search transactions..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Transaction</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               
-              {/* Vehicle Selection */}
               <div className="space-y-2">
-                <Label>Select Vehicle</Label>
+                <Label>Select Vehicle (Available)</Label>
                 <Select value={selectedVehicle} onValueChange={setSelectedVehicle}>
                   <SelectTrigger><SelectValue placeholder="Select a vehicle" /></SelectTrigger>
                   <SelectContent>
-                    {vehicles.map(v => (
+                    {availableVehicles.map(v => (
                       <SelectItem key={v.VehicleId} value={v.VehicleId}>
                         {v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel} ({v.VehicleSize})
                       </SelectItem>
@@ -294,7 +292,6 @@ export default function Transactions() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
 
       <Card>
         <CardHeader>
@@ -312,7 +309,7 @@ export default function Transactions() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((t) => {
+              {filteredTransactions.map((t) => {
                 const vehicle = vehicles.find(v => v.VehicleId === t.VehicleId);
                 return (
                   <TableRow key={t.TransactionId}>

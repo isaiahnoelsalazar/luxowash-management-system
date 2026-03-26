@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Car, Receipt, Activity } from 'lucide-react';
 
 export default function Dashboard() {
+  const { employees, customers, transactions, billings } = useData();
   const [stats, setStats] = useState({
     employees: 0,
     customers: 0,
@@ -12,29 +13,15 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [emp, cust, trans, bill] = await Promise.all([
-          api.get('/employees'),
-          api.get('/customers'),
-          api.get('/transactions'),
-          api.get('/billing'),
-        ]);
-        
-        const totalRevenue = bill.reduce((acc: number, curr: any) => acc + (curr.BalancePaid || 0), 0);
+    const totalRevenue = billings.reduce((acc: number, curr: any) => acc + (curr.BalancePaid || 0), 0);
 
-        setStats({
-          employees: emp.length,
-          customers: cust.length,
-          transactions: trans.length,
-          revenue: totalRevenue,
-        });
-      } catch (error) {
-        console.error('Failed to fetch stats', error);
-      }
-    };
-    fetchStats();
-  }, []);
+    setStats({
+      employees: employees.length,
+      customers: customers.length,
+      transactions: transactions.length,
+      revenue: totalRevenue,
+    });
+  }, [employees, customers, transactions, billings]);
 
   return (
     <div className="space-y-6">

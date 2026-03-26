@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,32 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Employees() {
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [activeEmployees, setActiveEmployees] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { employees, activeEmployees, loading, refreshEmployees, refreshActiveEmployees } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     EmployeeId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', EmployeeAddress: ''
   });
-
-  const fetchData = async () => {
-    try {
-      const [empRes, activeRes] = await Promise.all([
-        api.get('/employees'),
-        api.get('/employees/time/active')
-      ]);
-      setEmployees(empRes);
-      setActiveEmployees(activeRes);
-    } catch (error) {
-      console.error('Failed to fetch employees', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +25,7 @@ export default function Employees() {
         await api.post('/employees', formData);
       }
       setIsDialogOpen(false);
-      fetchData();
+      refreshEmployees();
     } catch (error) {
       console.error('Failed to save employee', error);
     }
@@ -53,7 +34,7 @@ export default function Employees() {
   const handleTimeAction = async (empId: string, action: 'in' | 'out') => {
     try {
       await api.post('/employees/time', { EmployeeId: empId, action });
-      fetchData();
+      refreshActiveEmployees();
     } catch (error) {
       console.error('Failed to record time', error);
     }
@@ -69,12 +50,31 @@ export default function Employees() {
     setIsDialogOpen(true);
   };
 
+  const filteredEmployees = employees.filter(emp => {
+    const name = `${emp.FirstName} ${emp.LastName}`.toLowerCase();
+    const contact = (emp.MobileNumber || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return name.includes(query) || contact.includes(query);
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
         <Button onClick={openAdd}>Add Employee</Button>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search employees..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{formData.EmployeeId ? 'Edit Employee' : 'Add Employee'}</DialogTitle>
@@ -106,7 +106,6 @@ export default function Employees() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
 
       <Card>
         <CardHeader>
@@ -123,7 +122,7 @@ export default function Employees() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employees.map((emp) => {
+              {filteredEmployees.map((emp) => {
                 const isActive = activeEmployees.some(a => a.EmployeeId === emp.EmployeeId);
                 return (
                   <TableRow key={emp.EmployeeId}>

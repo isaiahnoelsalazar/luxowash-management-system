@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,26 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Users() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { users, loading, refreshUsers } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({ Username: '', Password: '' });
-
-  const fetchData = async () => {
-    try {
-      const res = await api.get('/users');
-      setUsers(res);
-    } catch (error) {
-      console.error('Failed to fetch users', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +24,7 @@ export default function Users() {
         await api.post('/users', formData);
       }
       setIsDialogOpen(false);
-      fetchData();
+      refreshUsers();
     } catch (error) {
       console.error('Failed to save user', error);
     }
@@ -56,12 +42,29 @@ export default function Users() {
     setIsDialogOpen(true);
   };
 
+  const filteredUsers = users.filter(u => {
+    const username = (u.Username || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return username.includes(query);
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">User Accounts</h1>
         <Button onClick={openAdd}>Add User</Button>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search users..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit User Password' : 'Add User'}</DialogTitle>
@@ -79,7 +82,6 @@ export default function Users() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
 
       <Card>
         <CardHeader>
@@ -94,7 +96,7 @@ export default function Users() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((u) => (
+              {filteredUsers.map((u) => (
                 <TableRow key={u.Username}>
                   <TableCell className="font-medium">{u.Username}</TableCell>
                   <TableCell className="text-right">

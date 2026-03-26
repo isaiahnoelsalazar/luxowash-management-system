@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,10 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Services() {
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { services, loading, refreshServices } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     ServiceId: '',
     ServiceName: '',
@@ -23,21 +24,6 @@ export default function Services() {
     ServiceStatus: 'Available'
   });
 
-  const fetchData = async () => {
-    try {
-      const res = await api.get('/services');
-      setServices(res);
-    } catch (error) {
-      console.error('Failed to fetch services', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -47,7 +33,7 @@ export default function Services() {
         await api.post('/services', formData);
       }
       setIsDialogOpen(false);
-      fetchData();
+      refreshServices();
     } catch (error) {
       console.error('Failed to save service', error);
     }
@@ -83,12 +69,31 @@ export default function Services() {
     setIsDialogOpen(true);
   };
 
+  const filteredServices = services.filter(srv => {
+    const name = (srv.ServiceName || '').toLowerCase();
+    const id = (srv.ServiceId || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return name.includes(query) || id.includes(query);
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Services</h1>
         <Button onClick={openAdd}>Add Service</Button>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search services..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit Service' : 'Add Service'}</DialogTitle>
@@ -185,7 +190,6 @@ export default function Services() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
@@ -207,12 +211,12 @@ export default function Services() {
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-4">Loading services...</TableCell>
               </TableRow>
-            ) : services.length === 0 ? (
+            ) : filteredServices.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-4">No services found.</TableCell>
               </TableRow>
             ) : (
-              services.map((srv, index) => (
+              filteredServices.map((srv, index) => (
                 <TableRow key={`${srv.ServiceId}-${index}`}>
                   <TableCell className="font-medium">{srv.ServiceId}</TableCell>
                   <TableCell>{srv.ServiceName}</TableCell>

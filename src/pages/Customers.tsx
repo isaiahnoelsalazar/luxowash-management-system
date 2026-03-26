@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,13 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import modelsText from '@/src/models.txt?raw';
+
+const parsedModels = modelsText.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
+  const [brand, model] = line.split(':');
+  return { brand: brand?.trim(), model: model?.trim() };
+});
+const uniqueBrands = Array.from(new Set(parsedModels.map(m => m.brand).filter(Boolean)));
 
 export default function Customers() {
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { customers, vehicles, loading, refreshCustomers, refreshVehicles } = useData();
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [customerForm, setCustomerForm] = useState({
     CustomerId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', CustomerAddress: ''
@@ -22,25 +29,6 @@ export default function Customers() {
   const [vehicleForm, setVehicleForm] = useState({
     VehicleId: '', VehicleBrand: '', VehicleModel: '', VehicleSize: 'M', PlateNumber: '', CustomerId: ''
   });
-
-  const fetchData = async () => {
-    try {
-      const [custRes, vehRes] = await Promise.all([
-        api.get('/customers'),
-        api.get('/vehicles')
-      ]);
-      setCustomers(custRes);
-      setVehicles(vehRes);
-    } catch (error) {
-      console.error('Failed to fetch data', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +39,7 @@ export default function Customers() {
         await api.post('/customers', customerForm);
       }
       setIsCustomerDialogOpen(false);
-      fetchData();
+      refreshCustomers();
     } catch (error) {
       console.error('Failed to save customer', error);
     }
@@ -66,7 +54,7 @@ export default function Customers() {
         await api.post('/vehicles', vehicleForm);
       }
       setIsVehicleDialogOpen(false);
-      fetchData();
+      refreshVehicles();
     } catch (error) {
       console.error('Failed to save vehicle', error);
     }
@@ -92,11 +80,30 @@ export default function Customers() {
     setIsVehicleDialogOpen(true);
   };
 
+  const filteredCustomers = customers.filter(cust => {
+    const name = `${cust.FirstName} ${cust.LastName}`.toLowerCase();
+    const contact = (cust.MobileNumber || '').toLowerCase();
+    const custVehicles = vehicles.filter(v => v.CustomerId === cust.CustomerId);
+    const plates = custVehicles.map(v => v.PlateNumber.toLowerCase()).join(' ');
+    const query = searchQuery.toLowerCase();
+    
+    return name.includes(query) || contact.includes(query) || plates.includes(query);
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Customers & Vehicles</h1>
         <Button onClick={openAddCustomer}>Add New Customer</Button>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search customers or plates..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
       </div>
 
       <Dialog open={isCustomerDialogOpen} onOpenChange={setIsCustomerDialogOpen}>
@@ -137,11 +144,31 @@ export default function Customers() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Brand</Label>
-                <Input value={vehicleForm.VehicleBrand} onChange={e => setVehicleForm({...vehicleForm, VehicleBrand: e.target.value})} required />
+                <Input 
+                  list="vehicle-brands"
+                  value={vehicleForm.VehicleBrand} 
+                  onChange={e => setVehicleForm({...vehicleForm, VehicleBrand: e.target.value})} 
+                  required 
+                />
+                <datalist id="vehicle-brands">
+                  {uniqueBrands.map(b => <option key={b} value={b} />)}
+                </datalist>
               </div>
               <div className="space-y-2">
                 <Label>Model</Label>
-                <Input value={vehicleForm.VehicleModel} onChange={e => setVehicleForm({...vehicleForm, VehicleModel: e.target.value})} required />
+                <Input 
+                  list="vehicle-models"
+                  value={vehicleForm.VehicleModel} 
+                  onChange={e => setVehicleForm({...vehicleForm, VehicleModel: e.target.value})} 
+                  required 
+                />
+                <datalist id="vehicle-models">
+                  {parsedModels
+                    .filter(m => m.brand === vehicleForm.VehicleBrand)
+                    .map(m => m.model)
+                    .filter(Boolean)
+                    .map(m => <option key={m} value={m} />)}
+                </datalist>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -169,7 +196,7 @@ export default function Customers() {
       </Dialog>
 
       <div className="grid gap-6">
-        {customers.map(cust => {
+        {filteredCustomers.map(cust => {
           const custVehicles = vehicles.filter(v => v.CustomerId === cust.CustomerId);
           return (
             <Card key={cust.CustomerId}>

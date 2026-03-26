@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,41 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 export default function Billing() {
-  const [billings, setBillings] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [packages, setPackages] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { billings, transactions, vehicles, packages, services, loading, refreshBillings } = useData();
   const [selectedBill, setSelectedBill] = useState<any>(null);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-
-  const fetchData = async () => {
-    try {
-      const [billRes, transRes, vehRes, packRes, servRes] = await Promise.all([
-        api.get('/billing'),
-        api.get('/transactions'),
-        api.get('/vehicles'),
-        api.get('/packages'),
-        api.get('/services'),
-      ]);
-      setBillings(billRes);
-      setTransactions(transRes);
-      setVehicles(vehRes);
-      setPackages(packRes);
-      setServices(servRes);
-    } catch (error) {
-      console.error('Failed to fetch data', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handlePayment = async () => {
     if (!selectedBill) return;
@@ -53,7 +26,7 @@ export default function Billing() {
         BillingStatus: 'Paid'
       });
       setIsPayDialogOpen(false);
-      fetchData();
+      refreshBillings();
     } catch (error) {
       console.error('Failed to process payment', error);
     }
@@ -74,10 +47,30 @@ export default function Billing() {
     setIsViewDialogOpen(true);
   };
 
+  const filteredBillings = billings.filter(b => {
+    const trans = transactions.find(t => t.TransactionId === b.BillingId);
+    const vehicle = trans ? vehicles.find(v => v.VehicleId === trans.VehicleId) : null;
+    const plate = vehicle ? vehicle.PlateNumber.toLowerCase() : '';
+    const id = b.BillingId.toLowerCase();
+    const status = b.BillingStatus.toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return plate.includes(query) || id.includes(query) || status.includes(query);
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Billing & Payments</h1>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search billing records..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
       </div>
 
       <Card>
@@ -98,7 +91,7 @@ export default function Billing() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {billings.map((b) => {
+              {filteredBillings.map((b) => {
                 const trans = transactions.find(t => t.TransactionId === b.BillingId);
                 const vehicle = trans ? vehicles.find(v => v.VehicleId === trans.VehicleId) : null;
                 return (

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,10 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function Packages() {
-  const [packages, setPackages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { packages, loading, refreshPackages } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     PackageId: '',
     PackageName: '',
@@ -24,21 +25,6 @@ export default function Packages() {
     PackageStatus: 'Available'
   });
 
-  const fetchData = async () => {
-    try {
-      const res = await api.get('/packages');
-      setPackages(res);
-    } catch (error) {
-      console.error('Failed to fetch packages', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -48,7 +34,7 @@ export default function Packages() {
         await api.post('/packages', formData);
       }
       setIsDialogOpen(false);
-      fetchData();
+      refreshPackages();
     } catch (error) {
       console.error('Failed to save package', error);
     }
@@ -86,12 +72,32 @@ export default function Packages() {
     setIsDialogOpen(true);
   };
 
+  const filteredPackages = packages.filter(pkg => {
+    const name = (pkg.PackageName || '').toLowerCase();
+    const id = (pkg.PackageId || '').toLowerCase();
+    const details = (pkg.PackageDetails || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return name.includes(query) || id.includes(query) || details.includes(query);
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Packages</h1>
         <Button onClick={openAdd}>Add Package</Button>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search packages..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit Package' : 'Add Package'}</DialogTitle>
@@ -197,7 +203,6 @@ export default function Packages() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <Table>
@@ -220,12 +225,12 @@ export default function Packages() {
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-4">Loading packages...</TableCell>
               </TableRow>
-            ) : packages.length === 0 ? (
+            ) : filteredPackages.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="text-center py-4">No packages found.</TableCell>
               </TableRow>
             ) : (
-              packages.map((pkg, index) => (
+              filteredPackages.map((pkg, index) => (
                 <TableRow key={`${pkg.PackageId}-${index}`}>
                   <TableCell className="font-medium">{pkg.PackageId}</TableCell>
                   <TableCell>{pkg.PackageName}</TableCell>

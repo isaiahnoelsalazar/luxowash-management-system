@@ -1,29 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '@/lib/api';
+import { useData } from '@/src/contexts/DataContext';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Activity() {
-  const [activities, setActivities] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { activities, loading } = useData();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    const fetchActivity = async () => {
-      try {
-        const res = await api.get('/activity');
-        setActivities(res.reverse()); // Show newest first
-      } catch (error) {
-        console.error('Failed to fetch activity', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchActivity();
-  }, []);
+  const filteredActivities = activities.filter(a => {
+    const message = (a.ActivityMessage || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return message.includes(query);
+  });
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Activity Log</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Activity Log</h1>
+      </div>
+
+      <div className="mb-4">
+        <Input 
+          placeholder="Search activity..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md"
+        />
+      </div>
 
       <Card>
         <CardHeader>
@@ -37,8 +42,8 @@ export default function Activity() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {activities.length > 0 ? (
-                activities.map((a, index) => (
+              {filteredActivities.length > 0 ? (
+                filteredActivities.map((a, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium text-gray-700">{a.ActivityMessage}</TableCell>
                   </TableRow>
