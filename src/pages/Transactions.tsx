@@ -203,7 +203,7 @@ export default function Transactions() {
                   <SelectTrigger><SelectValue placeholder="Select a vehicle" /></SelectTrigger>
                   <SelectContent>
                     {availableVehicles.map(v => (
-                      <SelectItem key={v.VehicleId} value={v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel}>
+                      <SelectItem key={v.VehicleId} value={v.PlateNumber + " - " + v.VehicleBrand + " " + v.VehicleModel}>
                         {v.PlateNumber} - {v.VehicleBrand} {v.VehicleModel}
                       </SelectItem>
                     ))}
