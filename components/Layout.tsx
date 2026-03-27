@@ -30,7 +30,7 @@ export default function Layout({ children, user, onLogout }: { children: React.R
         <h1 className="text-2xl font-bold text-primary">Luxowash</h1>
         <p className="text-sm text-muted-foreground">POS & Management</p>
       </div>
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" id="sidebar">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
