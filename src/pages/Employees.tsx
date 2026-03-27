@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export default function Employees() {
-  const { employees, activeEmployees, loading, refreshEmployees, refreshActiveEmployees } = useData();
+  const { employees, activeEmployees, todayLogs, loading, refreshEmployees, refreshActiveEmployees, refreshTodayLogs } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
@@ -38,6 +38,7 @@ export default function Employees() {
       await api.post('/employees/time', { EmployeeId: empId, action });
       toast.success(`Successfully timed ${action === 'in' ? 'in' : 'out'}`);
       refreshActiveEmployees();
+      refreshTodayLogs();
     } catch (error: any) {
       const message = error.message || 'Failed to record time';
       toast.error(message);
@@ -129,6 +130,9 @@ export default function Employees() {
             <TableBody>
               {filteredEmployees.map((emp) => {
                 const isActive = activeEmployees.some(a => a.EmployeeId === emp.EmployeeId);
+                const hasTimedInToday = todayLogs.some(l => l.EmployeeId === emp.EmployeeId);
+                const hasTimedOutToday = todayLogs.some(l => l.EmployeeId === emp.EmployeeId && l.TimeOut);
+                
                 return (
                   <TableRow key={emp.EmployeeId}>
                     <TableCell className="font-medium">{emp.FirstName} {emp.LastName}</TableCell>
@@ -138,17 +142,21 @@ export default function Employees() {
                         "px-2 py-1 rounded-full text-xs font-medium",
                         isActive 
                           ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
-                          : "bg-muted text-muted-foreground"
+                          : hasTimedOutToday
+                            ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                            : "bg-muted text-muted-foreground"
                       )}>
-                        {isActive ? 'Timed In' : 'Timed Out'}
+                        {isActive ? 'Timed In' : hasTimedOutToday ? 'Completed' : 'Timed Out'}
                       </span>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => openEdit(emp)}>Edit</Button>
                       {isActive ? (
                         <Button variant="destructive" size="sm" onClick={() => handleTimeAction(emp.EmployeeId, 'out')}>Time Out</Button>
-                      ) : (
+                      ) : !hasTimedInToday ? (
                         <Button variant="default" size="sm" onClick={() => handleTimeAction(emp.EmployeeId, 'in')}>Time In</Button>
+                      ) : (
+                        <Button variant="ghost" size="sm" disabled>Done Today</Button>
                       )}
                     </TableCell>
                   </TableRow>

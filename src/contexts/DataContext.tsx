@@ -6,6 +6,7 @@ interface DataContextType {
   billings: any[];
   employees: any[];
   activeEmployees: any[];
+  todayLogs: any[];
   vehicles: any[];
   customers: any[];
   services: any[];
@@ -17,6 +18,7 @@ interface DataContextType {
   refreshBillings: () => Promise<void>;
   refreshEmployees: () => Promise<void>;
   refreshActiveEmployees: () => Promise<void>;
+  refreshTodayLogs: () => Promise<void>;
   refreshVehicles: () => Promise<void>;
   refreshCustomers: () => Promise<void>;
   refreshServices: () => Promise<void>;
@@ -33,6 +35,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [billings, setBillings] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [activeEmployees, setActiveEmployees] = useState<any[]>([]);
+  const [todayLogs, setTodayLogs] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -45,6 +48,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshBillings = async () => { const res = await api.get('/billing'); setBillings(res); };
   const refreshEmployees = async () => { const res = await api.get('/employees'); setEmployees(res); };
   const refreshActiveEmployees = async () => { const res = await api.get('/employees/time/active'); setActiveEmployees(res); };
+  const refreshTodayLogs = async () => {
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+    const res = await api.get(`/employees/time/logs?date=${dateStr}`);
+    setTodayLogs(res);
+  };
   const refreshVehicles = async () => { const res = await api.get('/vehicles'); setVehicles(res); };
   const refreshCustomers = async () => { const res = await api.get('/customers'); setCustomers(res); };
   const refreshServices = async () => { const res = await api.get('/services'); setServices(res); };
@@ -60,6 +73,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshBillings(),
         refreshEmployees(),
         refreshActiveEmployees(),
+        refreshTodayLogs(),
         refreshVehicles(),
         refreshCustomers(),
         refreshServices(),
@@ -80,8 +94,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <DataContext.Provider value={{
-      transactions, billings, employees, activeEmployees, vehicles, customers, services, packages, activities, users, loading,
-      refreshTransactions, refreshBillings, refreshEmployees, refreshActiveEmployees, refreshVehicles, refreshCustomers, refreshServices, refreshPackages, refreshActivities, refreshUsers, fetchAll
+      transactions, billings, employees, activeEmployees, todayLogs, vehicles, customers, services, packages, activities, users, loading,
+      refreshTransactions, refreshBillings, refreshEmployees, refreshActiveEmployees, refreshTodayLogs, refreshVehicles, refreshCustomers, refreshServices, refreshPackages, refreshActivities, refreshUsers, fetchAll
     }}>
       {children}
     </DataContext.Provider>

@@ -20,15 +20,22 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
+    const manilaToday = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Manila',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+
     const totalRevenue = billings.reduce((acc: number, curr: any) => acc + (curr.BalancePaid || 0), 0);
     const revenueToday = billings.reduce((acc: number, curr: any) => {
-      if (curr.DateUpdated && isToday(new Date(curr.DateUpdated))) {
+      if (curr.DateUpdated && curr.DateUpdated.startsWith(manilaToday) && curr.BillingStatus === 'Paid') {
         return acc + (curr.BalancePaid || 0);
       }
       return acc;
     }, 0);
 
-    const transactionsToday = transactions.filter((t: any) => t.DateUpdated && isToday(new Date(t.DateUpdated))).length;
+    const transactionsToday = transactions.filter((t: any) => t.DateUpdated && t.DateUpdated.startsWith(manilaToday)).length;
 
     setStats({
       employees: employees.length,
