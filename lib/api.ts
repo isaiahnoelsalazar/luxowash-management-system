@@ -12,9 +12,17 @@ export const api: CustomAxiosInstance = axios.create({
 });
 
 // Add a response interceptor to handle the "response_data" wrapper
-api.interceptors.response.use((response: AxiosResponse) => {
-  if (response.data && response.data.response_data) {
-    return response.data.response_data;
+api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    if (response.data && response.data.response_data) {
+      return response.data.response_data;
+    }
+    return response.data;
+  },
+  (error) => {
+    if (error.response && error.response.data && error.response.data.response_data) {
+      return Promise.reject(new Error(error.response.data.response_data));
+    }
+    return Promise.reject(error);
   }
-  return response.data;
-});
+);

@@ -22,13 +22,13 @@ export default function Dashboard() {
   useEffect(() => {
     const totalRevenue = billings.reduce((acc: number, curr: any) => acc + (curr.BalancePaid || 0), 0);
     const revenueToday = billings.reduce((acc: number, curr: any) => {
-      if (curr.DateCreated && isToday(new Date(curr.DateCreated))) {
+      if (curr.DateUpdated && isToday(new Date(curr.DateUpdated))) {
         return acc + (curr.BalancePaid || 0);
       }
       return acc;
     }, 0);
 
-    const transactionsToday = transactions.filter((t: any) => t.DateCreated && isToday(new Date(t.DateCreated))).length;
+    const transactionsToday = transactions.filter((t: any) => t.DateUpdated && isToday(new Date(t.DateUpdated))).length;
 
     setStats({
       employees: employees.length,

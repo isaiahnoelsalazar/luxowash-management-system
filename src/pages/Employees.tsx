@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
@@ -35,8 +36,11 @@ export default function Employees() {
   const handleTimeAction = async (empId: string, action: 'in' | 'out') => {
     try {
       await api.post('/employees/time', { EmployeeId: empId, action });
+      toast.success(`Successfully timed ${action === 'in' ? 'in' : 'out'}`);
       refreshActiveEmployees();
-    } catch (error) {
+    } catch (error: any) {
+      const message = error.message || 'Failed to record time';
+      toast.error(message);
       console.error('Failed to record time', error);
     }
   };
