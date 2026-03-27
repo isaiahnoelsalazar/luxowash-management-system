@@ -4,6 +4,7 @@ import { LayoutDashboard, Users, Car, UserCircle, Receipt, FileText, Activity as
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import logo from "../luxowash_logo.jpg";
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -27,7 +28,7 @@ export default function Layout({ children, user, onLogout }: { children: React.R
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-card text-card-foreground">
       <div className="p-6 border-b border-border">
-        <img src="luxowash_logo.jpg" alt="Luxowash Logo" className="h-10 w-10" />
+        <img src={logo} alt="Luxowash Logo" className="h-10 w-10" />
         <h1 className="text-2xl font-bold text-primary">Luxowash</h1>
         <p className="text-sm text-muted-foreground">POS & Management</p>
       </div>
