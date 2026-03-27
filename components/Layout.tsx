@@ -27,10 +27,10 @@ export default function Layout({ children, user, onLogout }: { children: React.R
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-card text-card-foreground">
-      <div className="p-6 border-b border-border">
-        <img src={logo} alt="Luxowash Logo" className="h-10 w-10" />
-        <h1 className="text-2xl font-bold text-primary">Luxowash</h1>
-        <p className="text-sm text-muted-foreground">POS & Management</p>
+      <div className="border-b border-border">
+        <img src={logo} alt="Luxowash Logo" className="h-100 w-100" />
+        {/* <h1 className="text-2xl font-bold text-primary">Luxowash</h1>
+        <p className="text-sm text-muted-foreground">POS & Management</p> */}
       </div>
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto" id="sidebar">
         {navItems.map((item) => {
