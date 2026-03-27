@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Gift, RefreshCw, UserPlus } from 'lucide-react';
 import modelsText from '@/src/models.txt?raw';
+import { toast } from 'sonner';
 
 const parsedModels = modelsText.split('\n').map(line => line.trim()).filter(Boolean).map(line => {
   const [brand, model] = line.split(':');
@@ -21,14 +24,29 @@ export default function Customers() {
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [referralThreshold, setReferralThreshold] = useState(5);
   
   const [customerForm, setCustomerForm] = useState({
-    CustomerId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', CustomerAddress: ''
+    CustomerId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', CustomerAddress: '', ReferralCode: '', ReferredBy: ''
   });
   
   const [vehicleForm, setVehicleForm] = useState({
     VehicleId: '', VehicleBrand: '', VehicleModel: '', VehicleSize: 'M', PlateNumber: '', CustomerId: ''
   });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/settings');
+        if (res.ReferralThreshold) {
+          setReferralThreshold(parseInt(res.ReferralThreshold));
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const handleCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,8 +58,22 @@ export default function Customers() {
       }
       setIsCustomerDialogOpen(false);
       refreshCustomers();
+      toast.success('Customer saved successfully');
     } catch (error) {
       console.error('Failed to save customer', error);
+      toast.error('Failed to save customer');
+    }
+  };
+
+  const generateReferralCode = (cust: any) => {
+    const code = (cust.FirstName.substring(0, 2) + cust.LastName.substring(0, 2) + Math.random().toString(36).substring(2, 6)).toUpperCase();
+    setCustomerForm({ ...cust, ReferralCode: code });
+    // If we are editing, we can save it directly or let the user save the form
+    if (cust.CustomerId) {
+      api.put('/customers', { ...cust, ReferralCode: code }).then(() => {
+        refreshCustomers();
+        toast.success('Referral code generated');
+      });
     }
   };
 
@@ -55,18 +87,24 @@ export default function Customers() {
       }
       setIsVehicleDialogOpen(false);
       refreshVehicles();
+      toast.success('Vehicle saved successfully');
     } catch (error) {
       console.error('Failed to save vehicle', error);
+      toast.error('Failed to save vehicle');
     }
   };
 
   const openEditCustomer = (cust: any) => {
-    setCustomerForm(cust);
+    setCustomerForm({
+      ...cust,
+      ReferralCode: cust.ReferralCode || '',
+      ReferredBy: cust.ReferredBy || ''
+    });
     setIsCustomerDialogOpen(true);
   };
 
   const openAddCustomer = () => {
-    setCustomerForm({ CustomerId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', CustomerAddress: '' });
+    setCustomerForm({ CustomerId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', CustomerAddress: '', ReferralCode: '', ReferredBy: '' });
     setIsCustomerDialogOpen(true);
   };
 
@@ -88,31 +126,35 @@ export default function Customers() {
   const filteredCustomers = customers.filter(cust => {
     const name = `${cust.FirstName} ${cust.LastName}`.toLowerCase();
     const contact = (cust.MobileNumber || '').toLowerCase();
+    const referral = (cust.ReferralCode || '').toLowerCase();
     const custVehicles = vehicles.filter(v => v.CustomerId === cust.CustomerId);
     const plates = custVehicles.map(v => v.PlateNumber.toLowerCase()).join(' ');
     const query = searchQuery.toLowerCase();
     
-    return name.includes(query) || contact.includes(query) || plates.includes(query);
+    return name.includes(query) || contact.includes(query) || plates.includes(query) || referral.includes(query);
   });
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Customers & Vehicles</h1>
-        <Button onClick={openAddCustomer}>Add New Customer</Button>
+        <Button onClick={openAddCustomer}>
+          <UserPlus className="w-4 h-4 mr-2" />
+          Add New Customer
+        </Button>
       </div>
 
       <div className="mb-4">
         <Input 
-          placeholder="Search customers or plates..." 
+          placeholder="Search customers, plates, or referral codes..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full max-w-md"
+          className="w-full max-w-md bg-background text-foreground"
         />
       </div>
 
       <Dialog open={isCustomerDialogOpen} onOpenChange={setIsCustomerDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-background text-foreground">
           <DialogHeader>
             <DialogTitle>{customerForm.CustomerId ? 'Edit Customer' : 'Add Customer'}</DialogTitle>
           </DialogHeader>
@@ -120,28 +162,46 @@ export default function Customers() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>First Name</Label>
-                <Input value={customerForm.FirstName} onChange={e => setCustomerForm({...customerForm, FirstName: e.target.value})} required />
+                <Input value={customerForm.FirstName} onChange={e => setCustomerForm({...customerForm, FirstName: e.target.value})} required className="bg-background text-foreground" />
               </div>
               <div className="space-y-2">
                 <Label>Last Name</Label>
-                <Input value={customerForm.LastName} onChange={e => setCustomerForm({...customerForm, LastName: e.target.value})} required />
+                <Input value={customerForm.LastName} onChange={e => setCustomerForm({...customerForm, LastName: e.target.value})} required className="bg-background text-foreground" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Mobile Number</Label>
+                <Input value={customerForm.MobileNumber || ''} onChange={e => setCustomerForm({...customerForm, MobileNumber: e.target.value})} className="bg-background text-foreground" />
+              </div>
+              <div className="space-y-2">
+                <Label>Referred By (Code)</Label>
+                <Input value={customerForm.ReferredBy || ''} onChange={e => setCustomerForm({...customerForm, ReferredBy: e.target.value.toUpperCase()})} placeholder="Enter referral code" className="bg-background text-foreground" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Mobile Number</Label>
-              <Input value={customerForm.MobileNumber || ''} onChange={e => setCustomerForm({...customerForm, MobileNumber: e.target.value})} />
-            </div>
-            <div className="space-y-2">
               <Label>Address</Label>
-              <Input value={customerForm.CustomerAddress || ''} onChange={e => setCustomerForm({...customerForm, CustomerAddress: e.target.value})} />
+              <Input value={customerForm.CustomerAddress || ''} onChange={e => setCustomerForm({...customerForm, CustomerAddress: e.target.value})} className="bg-background text-foreground" />
             </div>
+            {customerForm.CustomerId && (
+              <div className="space-y-2">
+                <Label>Referral Code</Label>
+                <div className="flex gap-2">
+                  <Input value={customerForm.ReferralCode || ''} readOnly className="bg-muted text-foreground" placeholder="No code generated" />
+                  <Button type="button" variant="outline" onClick={() => generateReferralCode(customerForm)}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Generate
+                  </Button>
+                </div>
+              </div>
+            )}
             <Button type="submit" className="w-full">Save Customer</Button>
           </form>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isVehicleDialogOpen} onOpenChange={setIsVehicleDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-background text-foreground">
           <DialogHeader>
             <DialogTitle>{vehicleForm.VehicleId ? 'Edit Vehicle' : 'Add Vehicle'}</DialogTitle>
           </DialogHeader>
@@ -154,6 +214,7 @@ export default function Customers() {
                   value={vehicleForm.VehicleBrand} 
                   onChange={e => setVehicleForm({...vehicleForm, VehicleBrand: e.target.value})} 
                   required 
+                  className="bg-background text-foreground"
                 />
                 <datalist id="vehicle-brands">
                   {uniqueBrands.map(b => <option key={b} value={b} />)}
@@ -175,6 +236,7 @@ export default function Customers() {
                     setVehicleForm({...vehicleForm, VehicleModel: newModel, VehicleSize: newSize});
                   }} 
                   required 
+                  className="bg-background text-foreground"
                 />
                 <datalist id="vehicle-models">
                   {parsedModels
@@ -188,7 +250,7 @@ export default function Customers() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Plate Number</Label>
-                <Input value={vehicleForm.PlateNumber} onChange={e => setVehicleForm({...vehicleForm, PlateNumber: e.target.value.toUpperCase()})} required />
+                <Input value={vehicleForm.PlateNumber} onChange={e => setVehicleForm({...vehicleForm, PlateNumber: e.target.value.toUpperCase()})} required className="bg-background text-foreground" />
               </div>
               <div className="space-y-2">
                 <Label>Size</Label>
@@ -197,8 +259,8 @@ export default function Customers() {
                   onValueChange={v => setVehicleForm({...vehicleForm, VehicleSize: v})}
                   disabled={vehicleForm.VehicleModel === 'TRUCK' || vehicleForm.VehicleModel === 'TRICYCLE' || vehicleForm.VehicleModel === 'PUV (JEEP)'}
                 >
-                  <SelectTrigger><SelectValue placeholder="Select size" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="bg-background text-foreground"><SelectValue placeholder="Select size" /></SelectTrigger>
+                  <SelectContent className="bg-background text-foreground">
                     {vehicleForm.VehicleModel === 'TRUCK' ? (
                       <SelectItem value="N/A">N/A</SelectItem>
                     ) : vehicleForm.VehicleModel === 'TRICYCLE' || vehicleForm.VehicleModel === 'PUV (JEEP)' ? (
@@ -230,39 +292,65 @@ export default function Customers() {
       <div className="grid gap-6">
         {filteredCustomers.map(cust => {
           const custVehicles = vehicles.filter(v => v.CustomerId === cust.CustomerId);
+          const isEligible = cust.ReferralCount >= referralThreshold;
           return (
-            <Card key={cust.CustomerId}>
+            <Card key={cust.CustomerId} className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle className="text-foreground">{cust.FirstName} {cust.LastName}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{cust.MobileNumber || 'No contact info'}</p>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-foreground">{cust.FirstName} {cust.LastName}</CardTitle>
+                    {cust.ReferralCode && (
+                      <Badge variant="secondary" className="font-mono">
+                        {cust.ReferralCode}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>{cust.MobileNumber || 'No contact info'}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Gift className="w-3 h-3" />
+                      {cust.ReferralCount || 0} Referrals
+                    </span>
+                  </div>
                 </div>
-                <div className="space-x-2">
+                <div className="flex items-center gap-2">
+                  {isEligible && (
+                    <Badge className="bg-green-500 hover:bg-green-600 text-white animate-pulse">
+                      Discount Eligible!
+                    </Badge>
+                  )}
                   <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
                   <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
                 </div>
               </CardHeader>
               <CardContent>
+                {isEligible && (
+                  <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3 text-green-600 dark:text-green-400 text-sm font-medium">
+                    <Gift className="w-5 h-5" />
+                    This customer has reached the referral threshold ({referralThreshold}) and is eligible for a discount!
+                  </div>
+                )}
                 {custVehicles.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Plate Number</TableHead>
-                        <TableHead>Brand</TableHead>
-                        <TableHead>Model</TableHead>
-                        <TableHead>Size</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-muted-foreground">Plate Number</TableHead>
+                        <TableHead className="text-muted-foreground">Brand</TableHead>
+                        <TableHead className="text-muted-foreground">Model</TableHead>
+                        <TableHead className="text-muted-foreground">Size</TableHead>
+                        <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {custVehicles.map(veh => (
-                        <TableRow key={veh.VehicleId}>
-                          <TableCell className="font-medium">{veh.PlateNumber}</TableCell>
-                          <TableCell>{veh.VehicleBrand}</TableCell>
-                          <TableCell>{veh.VehicleModel}</TableCell>
-                          <TableCell>{veh.VehicleSize}</TableCell>
+                        <TableRow key={veh.VehicleId} className="border-border">
+                          <TableCell className="font-medium text-foreground">{veh.PlateNumber}</TableCell>
+                          <TableCell className="text-foreground">{veh.VehicleBrand}</TableCell>
+                          <TableCell className="text-foreground">{veh.VehicleModel}</TableCell>
+                          <TableCell className="text-foreground">{veh.VehicleSize}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => openEditVehicle(veh)}>Edit</Button>
+                            <Button variant="ghost" size="sm" onClick={() => openEditVehicle(veh)} className="text-foreground hover:bg-accent">Edit</Button>
                           </TableCell>
                         </TableRow>
                       ))}

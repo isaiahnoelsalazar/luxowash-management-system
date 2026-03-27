@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Car, UserCircle, Receipt, FileText, Activity as ActivityIcon, LogOut, CreditCard, Wrench, Package, Menu, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Car, UserCircle, Receipt, FileText, Activity as ActivityIcon, LogOut, CreditCard, Wrench, Package, Menu, Settings, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ const navItems = [
   { name: 'Transactions', href: '/transactions', icon: Receipt },
   { name: 'Billing', href: '/billing', icon: CreditCard },
   { name: 'Employees', href: '/employees', icon: Users },
+  { name: 'Employee Logs', href: '/employee-logs', icon: Clock },
   { name: 'Customers & Vehicles', href: '/customers', icon: Car },
   { name: 'Services', href: '/services', icon: Wrench },
   { name: 'Packages', href: '/packages', icon: Package },

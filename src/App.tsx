@@ -15,6 +15,7 @@ import Activity from '@/src/pages/Activity';
 import Services from '@/src/pages/Services';
 import Packages from '@/src/pages/Packages';
 import Settings from '@/src/pages/Settings';
+import EmployeeLogs from '@/src/pages/EmployeeLogs';
 
 function App() {
   const [user, setUser] = useState<{ username: string; role: string } | null>(null);
@@ -43,6 +44,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/employees" element={<Employees />} />
+                <Route path="/employee-logs" element={<EmployeeLogs />} />
                 <Route path="/customers" element={<Customers />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/transactions" element={<Transactions />} />

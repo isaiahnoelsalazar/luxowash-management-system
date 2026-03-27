@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Check } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Check, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const themes = [
   { id: 'light', name: 'Light', color: 'bg-white', accent: 'bg-neutral-200', border: 'border-neutral-200' },
@@ -16,6 +19,42 @@ const themes = [
 
 export default function Settings() {
   const { theme, setTheme } = useTheme();
+  const [referralThreshold, setReferralThreshold] = useState<string>('5');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch('/api/settings');
+      const data = await response.json();
+      if (data.ReferralThreshold) {
+        setReferralThreshold(data.ReferralThreshold);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const saveSettings = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ReferralThreshold: referralThreshold }),
+      });
+      if (response.ok) {
+        toast.success('Settings saved successfully');
+      }
+    } catch (error) {
+      toast.error('Failed to save settings');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -23,50 +62,85 @@ export default function Settings() {
         <h1 className="text-3xl font-bold text-primary">Settings</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-foreground">Appearance</CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Customize the look and feel of your application.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <Label className="text-foreground">Theme</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {themes.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTheme(t.id)}
-                  className={cn(
-                    "group relative flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all hover:border-primary/50",
-                    theme === t.id ? "border-primary bg-accent/50" : "border-transparent"
-                  )}
-                >
-                  <div className={cn(
-                    "w-full aspect-video rounded-md flex items-center justify-center overflow-hidden shadow-sm",
-                    t.color,
-                    t.border,
-                    "border"
-                  )}>
-                    {t.accent && (
-                      <div className={cn("w-1/2 h-1/2 rounded-full", t.accent)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-foreground">Appearance</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Customize the look and feel of your application.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <Label className="text-foreground">Theme</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {themes.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTheme(t.id)}
+                    className={cn(
+                      "group relative flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all hover:border-primary/50",
+                      theme === t.id ? "border-primary bg-accent/50" : "border-transparent"
                     )}
-                    {theme === t.id && (
-                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                        <div className="bg-primary text-primary-foreground rounded-full p-1">
-                          <Check className="w-4 h-4" />
+                  >
+                    <div className={cn(
+                      "w-full aspect-video rounded-md flex items-center justify-center overflow-hidden shadow-sm",
+                      t.color,
+                      t.border,
+                      "border"
+                    )}>
+                      {t.accent && (
+                        <div className={cn("w-1/2 h-1/2 rounded-full", t.accent)} />
+                      )}
+                      {theme === t.id && (
+                        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                          <div className="bg-primary text-primary-foreground rounded-full p-1">
+                            <Check className="w-4 h-4" />
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{t.name}</span>
-                </button>
-              ))}
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-foreground">{t.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-foreground">Business Rules</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Configure referral system and other business logic.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="referralThreshold" className="text-foreground">Referral Threshold for Discount</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="referralThreshold"
+                    type="number"
+                    value={referralThreshold}
+                    onChange={(e) => setReferralThreshold(e.target.value)}
+                    className="bg-background text-foreground"
+                    placeholder="e.g. 5"
+                  />
+                  <Button onClick={saveSettings} disabled={loading}>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Number of successful referrals required for a customer to be eligible for a discount.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
