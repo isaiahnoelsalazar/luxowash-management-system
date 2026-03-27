@@ -6,8 +6,8 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const themes = [
-  { id: 'light', name: 'Light', color: 'bg-white', accent: 'bg-slate-200', border: 'border-gray-200' },
-  { id: 'dark', name: 'Dark', color: 'bg-slate-950', accent: 'bg-slate-800', border: 'border-slate-800' },
+  { id: 'light', name: 'Light', color: 'bg-white', accent: 'bg-neutral-200', border: 'border-neutral-200' },
+  { id: 'dark', name: 'Dark', color: 'bg-neutral-950', accent: 'bg-neutral-800', border: 'border-neutral-800' },
   { id: 'midnight-gold', name: 'Midnight Gold', color: 'bg-zinc-950', accent: 'bg-yellow-500', border: 'border-zinc-800' },
   { id: 'ocean', name: 'Ocean', color: 'bg-blue-50', accent: 'bg-blue-600', border: 'border-blue-200' },
   { id: 'forest', name: 'Forest', color: 'bg-emerald-50', accent: 'bg-emerald-600', border: 'border-emerald-200' },
