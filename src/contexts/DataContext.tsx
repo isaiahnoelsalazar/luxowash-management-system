@@ -11,6 +11,7 @@ interface DataContextType {
   customers: any[];
   services: any[];
   packages: any[];
+  extras: any[];
   activities: any[];
   users: any[];
   loading: boolean;
@@ -23,6 +24,7 @@ interface DataContextType {
   refreshCustomers: () => Promise<void>;
   refreshServices: () => Promise<void>;
   refreshPackages: () => Promise<void>;
+  refreshExtras: () => Promise<void>;
   refreshActivities: () => Promise<void>;
   refreshUsers: () => Promise<void>;
   fetchAll: () => Promise<void>;
@@ -40,6 +42,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [customers, setCustomers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
   const [packages, setPackages] = useState<any[]>([]);
+  const [extras, setExtras] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +65,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshCustomers = async () => { const res = await api.get('/customers'); setCustomers(res); };
   const refreshServices = async () => { const res = await api.get('/services'); setServices(res); };
   const refreshPackages = async () => { const res = await api.get('/packages'); setPackages(res); };
+  const refreshExtras = async () => { const res = await api.get('/extras'); setExtras(res); };
   const refreshActivities = async () => { const res = await api.get('/activity'); setActivities(res.reverse()); };
   const refreshUsers = async () => { const res = await api.get('/users'); setUsers(res); };
 
@@ -78,6 +82,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshCustomers(),
         refreshServices(),
         refreshPackages(),
+        refreshExtras(),
         refreshActivities(),
         refreshUsers(),
       ]);
@@ -94,8 +99,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <DataContext.Provider value={{
-      transactions, billings, employees, activeEmployees, todayLogs, vehicles, customers, services, packages, activities, users, loading,
-      refreshTransactions, refreshBillings, refreshEmployees, refreshActiveEmployees, refreshTodayLogs, refreshVehicles, refreshCustomers, refreshServices, refreshPackages, refreshActivities, refreshUsers, fetchAll
+      transactions, billings, employees, activeEmployees, todayLogs, vehicles, customers, services, packages, extras, activities, users, loading,
+      refreshTransactions, refreshBillings, refreshEmployees, refreshActiveEmployees, refreshTodayLogs, refreshVehicles, refreshCustomers, refreshServices, refreshPackages, refreshExtras, refreshActivities, refreshUsers, fetchAll
     }}>
       {children}
     </DataContext.Provider>

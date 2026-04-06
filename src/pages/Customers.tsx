@@ -166,7 +166,7 @@ export default function Customers() {
       </div>
 
       <Dialog open={isCustomerDialogOpen} onOpenChange={setIsCustomerDialogOpen}>
-        <DialogContent className="sm:max-w-3xl bg-background text-foreground">
+        <DialogContent className="sm:max-w-[600px] bg-background text-foreground">
           <DialogHeader>
             <DialogTitle>{customerForm.CustomerId ? 'Edit Customer' : 'Add Customer'}</DialogTitle>
           </DialogHeader>
@@ -213,7 +213,7 @@ export default function Customers() {
       </Dialog>
 
       <Dialog open={isVehicleDialogOpen} onOpenChange={setIsVehicleDialogOpen}>
-        <DialogContent className="sm:max-w-3xl bg-background text-foreground">
+        <DialogContent className="sm:max-w-[600px] bg-background text-foreground">
           <DialogHeader>
             <DialogTitle>{vehicleForm.VehicleId ? 'Edit Vehicle' : 'Add Vehicle'}</DialogTitle>
           </DialogHeader>

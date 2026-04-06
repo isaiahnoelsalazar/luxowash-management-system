@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 export default function Transactions() {
-  const { transactions, activeEmployees, employees: allEmployees, vehicles, services, packages, loading, refreshTransactions, fetchAll } = useData();
+  const { transactions, activeEmployees, employees: allEmployees, vehicles, services, packages, extras: availableExtras, loading, refreshTransactions, fetchAll } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedTransactionDetails, setSelectedTransactionDetails] = useState<any>(null);
@@ -24,14 +24,16 @@ export default function Transactions() {
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<string>('');
+  const [selectedExtras, setSelectedExtras] = useState<{[key: string]: number}>({});
 
   // Reset services and package when vehicle changes
   React.useEffect(() => {
     setSelectedServices([]);
     setSelectedPackage('');
+    setSelectedExtras({});
   }, [selectedVehicle]);
   const [discount, setDiscount] = useState<number>(0);
-  const [extras, setExtras] = useState<string>('');
+  const [customExtras, setCustomExtras] = useState<string>('');
   const [truckPrice, setTruckPrice] = useState<number>(0);
   const [truckNotes, setTruckNotes] = useState<string>('');
   const [specialPrices, setSpecialPrices] = useState<any[]>([]);
@@ -106,6 +108,16 @@ export default function Transactions() {
       });
     }
 
+    // Add Extras Price
+    Object.entries(selectedExtras).forEach(([extraId, qty]) => {
+      const extra = availableExtras.find(e => e.ExtraId === extraId);
+      if (extra) {
+        const price = Number(extra.ExtraPrice) || 0;
+        const quantity = Number(qty);
+        total += price * quantity;
+      }
+    });
+
     // Apply Discount
     if (discount > 0) {
       total = total - (total * (discount / 100));
@@ -132,7 +144,18 @@ export default function Transactions() {
     }
 
     const isTruck = vehicle?.VehicleModel === 'TRUCK';
-    const finalExtras = isTruck ? (extras ? `${extras} | Notes: ${truckNotes}` : `Notes: ${truckNotes}`) : extras;
+    
+    // Format Extras
+    const formattedExtras = Object.entries(selectedExtras)
+      .map(([extraId, qty]) => {
+        const extra = availableExtras.find(e => e.ExtraId === extraId);
+        return extra ? `${extra.ExtraName} (${qty})` : '';
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    const finalExtrasList = [formattedExtras, customExtras].filter(Boolean).join(' | ');
+    const finalExtras = isTruck ? (finalExtrasList ? `${finalExtrasList} | Notes: ${truckNotes}` : `Notes: ${truckNotes}`) : finalExtrasList;
 
     const payload = {
       EmployeeIdList: selectedEmployees.join(','),
@@ -160,8 +183,9 @@ export default function Transactions() {
     setSelectedVehicle('');
     setSelectedServices([]);
     setSelectedPackage('');
+    setSelectedExtras({});
     setDiscount(0);
-    setExtras('');
+    setCustomExtras('');
     setTruckPrice(0);
     setTruckNotes('');
   };
@@ -227,7 +251,7 @@ export default function Transactions() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Transaction</DialogTitle>
             </DialogHeader>
@@ -373,24 +397,84 @@ export default function Transactions() {
               )}
 
               {/* Discount & Extras */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Discount (%) - Max 20%</Label>
-                  <Input 
-                    type="number" 
-                    min="0" 
-                    max="20" 
-                    value={discount} 
-                    onChange={e => setDiscount(Number(e.target.value))} 
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Discount (%) - Max 20%</Label>
+                    <Input 
+                      type="number" 
+                      min="0" 
+                      max="20" 
+                      value={discount} 
+                      onChange={e => setDiscount(Number(e.target.value))} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Other Extras (Manual Entry)</Label>
+                    <Input 
+                      value={customExtras} 
+                      onChange={e => setCustomExtras(e.target.value)} 
+                      placeholder="e.g. Special Request"
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label>Extras (e.g., Perfume)</Label>
-                  <Input 
-                    value={extras} 
-                    onChange={e => setExtras(e.target.value)} 
-                    placeholder="Enter extras..."
-                  />
+                  <Label>Managed Extras</Label>
+                  <div className="grid grid-cols-1 gap-2 border p-4 rounded-md max-h-48 overflow-y-auto">
+                    {availableExtras.filter(e => e.ExtraStatus === 'Available').map(extra => (
+                      <div key={extra.ExtraId} className="flex items-center justify-between py-1 border-b last:border-0">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`extra-${extra.ExtraId}`} 
+                            checked={!!selectedExtras[extra.ExtraId]}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedExtras({ ...selectedExtras, [extra.ExtraId]: 1 });
+                              } else {
+                                const newExtras = { ...selectedExtras };
+                                delete newExtras[extra.ExtraId];
+                                setSelectedExtras(newExtras);
+                              }
+                            }}
+                          />
+                          <label htmlFor={`extra-${extra.ExtraId}`} className="text-sm font-medium leading-none">
+                            {extra.ExtraName} (₱{Number(extra.ExtraPrice)})
+                          </label>
+                        </div>
+                        {selectedExtras[extra.ExtraId] && (
+                          <div className="flex items-center space-x-2">
+                            {extra.ExtraType === 'Per Piece' ? (
+                              <>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="icon" 
+                                  className="h-6 w-6"
+                                  onClick={() => setSelectedExtras({ ...selectedExtras, [extra.ExtraId]: Math.max(1, selectedExtras[extra.ExtraId] - 1) })}
+                                >
+                                  -
+                                </Button>
+                                <span className="text-sm w-4 text-center">{selectedExtras[extra.ExtraId]}</span>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="icon" 
+                                  className="h-6 w-6"
+                                  onClick={() => setSelectedExtras({ ...selectedExtras, [extra.ExtraId]: selectedExtras[extra.ExtraId] + 1 })}
+                                >
+                                  +
+                                </Button>
+                              </>
+                            ) : (
+                              <Badge variant="secondary">1 Vehicle</Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {availableExtras.length === 0 && <p className="text-sm text-muted-foreground">No extras available.</p>}
+                  </div>
                 </div>
               </div>
 
@@ -474,7 +558,7 @@ export default function Transactions() {
 
       {/* View Transaction Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Transaction Details</DialogTitle>
           </DialogHeader>

@@ -14,6 +14,7 @@ import Reports from '@/src/pages/Reports';
 import Activity from '@/src/pages/Activity';
 import Services from '@/src/pages/Services';
 import Packages from '@/src/pages/Packages';
+import Extras from '@/src/pages/Extras';
 import Settings from '@/src/pages/Settings';
 import EmployeeLogs from '@/src/pages/EmployeeLogs';
 
@@ -51,6 +52,7 @@ function App() {
                 <Route path="/billing" element={<Billing />} />
                 <Route path="/services" element={<Services />} />
                 <Route path="/packages" element={<Packages />} />
+                <Route path="/extras" element={<Extras />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/activity" element={<Activity />} />
                 <Route path="/settings" element={<Settings />} />

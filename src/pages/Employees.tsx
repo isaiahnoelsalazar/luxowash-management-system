@@ -81,7 +81,7 @@ export default function Employees() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-3xl">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>{formData.EmployeeId ? 'Edit Employee' : 'Add Employee'}</DialogTitle>
             </DialogHeader>

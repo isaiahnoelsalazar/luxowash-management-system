@@ -125,7 +125,7 @@ export default function Billing() {
 
       {/* Payment Dialog */}
       <Dialog open={isPayDialogOpen} onOpenChange={setIsPayDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Process Payment</DialogTitle>
           </DialogHeader>
@@ -149,7 +149,7 @@ export default function Billing() {
 
       {/* Receipt Dialog */}
       <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="text-center">Official Receipt</DialogTitle>
           </DialogHeader>
@@ -188,7 +188,7 @@ export default function Billing() {
       </Dialog>
       {/* View Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Billing & Transaction Details</DialogTitle>
           </DialogHeader>
