@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Gift, RefreshCw, UserPlus } from 'lucide-react';
+import { Gift, RefreshCw, UserPlus, Trash2 } from 'lucide-react';
 import modelsText from '@/src/models.txt?raw';
 import { toast } from 'sonner';
 
@@ -121,6 +121,18 @@ export default function Customers() {
     
     setVehicleForm({ ...veh, VehicleSize: size });
     setIsVehicleDialogOpen(true);
+  };
+
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    if (!confirm('Are you sure you want to delete this vehicle?')) return;
+    try {
+      await api.delete(`/vehicles/${vehicleId}`);
+      refreshVehicles();
+      toast.success('Vehicle deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete vehicle', error);
+      toast.error('Failed to delete vehicle');
+    }
   };
 
   const filteredCustomers = customers.filter(cust => {
@@ -351,6 +363,9 @@ export default function Customers() {
                           <TableCell className="text-foreground">{veh.VehicleSize}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" onClick={() => openEditVehicle(veh)} className="text-foreground hover:bg-accent">Edit</Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteVehicle(veh.VehicleId)} className="text-destructive hover:bg-destructive/10 hover:text-destructive ml-2">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}

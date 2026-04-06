@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
@@ -11,35 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-const XXL_SPECIAL_PRICES: Record<string, number> = {
-  'TOYOTA HIACE': 350,
-  'TOYOTA GRAND HIACE': 350,
-  'TOYOTA HIACE/GRAND HIACE': 350,
-  'TOYOTA HIACE COMMUTER': 400,
-  'TOYOTA HIACE COMMUTER DELUXE': 400,
-  'TOYOTA HIACE COMMUTER/HIACE COMMUTER DELUXE': 400,
-  'TOYOTA HIACE GL GRANDIA': 400,
-  'TOYOTA HIACE GL GRANDIA TOURER': 500,
-  'TOYOTA HIACE SUPER GRANDIA': 500,
-  'TOYOTA ALPHARD': 400,
-  'NISSAN URVAN STANDARD': 350,
-  'NISSAN URVAN PREMIUM': 400,
-  'NISSAN URVAN CARGO': 400,
-  'HYUNDAI STARIA': 350,
-  'HYUNDAI GRAND STAREX': 350,
-  'HYUNDAI H350': 600,
-  'HYUNDAI H100': 450,
-  'FOTON DROPSIDE': 350,
-  'FOTON TRANSVAN E': 350,
-  'FOTON MPV': 400,
-  'FOTON TRANSVAN HR': 400,
-  'FOTON TRAVELLER XL': 500,
-  'FOTON TOANA STANDARD': 600,
-  'MITSUBISHI VERSA VAN': 350,
-  'MITSUBISHI L300': 350,
-  'GAC M6 PRO': 400,
-  'GAC M8': 500,
-};
 
 export default function Transactions() {
   const { transactions, activeEmployees, employees: allEmployees, vehicles, services, packages, loading, refreshTransactions, fetchAll } = useData();
@@ -63,6 +34,19 @@ export default function Transactions() {
   const [extras, setExtras] = useState<string>('');
   const [truckPrice, setTruckPrice] = useState<number>(0);
   const [truckNotes, setTruckNotes] = useState<string>('');
+  const [specialPrices, setSpecialPrices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchSpecialPrices = async () => {
+      try {
+        const res = await api.get('/service-special-prices');
+        setSpecialPrices(res);
+      } catch (error) {
+        console.error('Failed to fetch special prices', error);
+      }
+    };
+    fetchSpecialPrices();
+  }, []);
 
   const getServicesInPackage = (pkgId: string) => {
     if (!pkgId || pkgId === 'none') return [];
@@ -103,15 +87,17 @@ export default function Transactions() {
         if (!includedServices.includes(srvName)) {
           const srv = services.find(s => s.ServiceName === srvName);
           if (srv) {
-            if (vehicle?.VehicleModel === 'MOTORCYCLE' && srv.ServiceId === 'S_RBWRM' && size === 'M') {
+            // Check for special pricing from database
+            const specialPrice = specialPrices.find(sp => 
+              sp.ServiceId === srv.ServiceId && 
+              sp.VehicleBrand === vehicle?.VehicleBrand && 
+              sp.VehicleModel === vehicle?.VehicleModel
+            );
+
+            if (specialPrice) {
+              total += Number(specialPrice.SpecialPrice);
+            } else if (vehicle?.VehicleModel === 'MOTORCYCLE' && srv.ServiceId === 'S_RBWRM' && size === 'M') {
               total += srv.ServicePriceSizeL || 0;
-            } else if (size === 'XXL' && srv.ServiceId === 'S_BWV') {
-              const brandModel = `${vehicle.VehicleBrand} ${vehicle.VehicleModel}`.toUpperCase();
-              if (XXL_SPECIAL_PRICES[brandModel]) {
-                total += XXL_SPECIAL_PRICES[brandModel];
-              } else {
-                total += srv[`ServicePrice${sizeKey}`] || 0;
-              }
             } else {
               total += srv[`ServicePrice${sizeKey}`] || 0;
             }
