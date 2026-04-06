@@ -99,7 +99,7 @@ export default function Packages() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit Package' : 'Add Package'}</DialogTitle>
             </DialogHeader>

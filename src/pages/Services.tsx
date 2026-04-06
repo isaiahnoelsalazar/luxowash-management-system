@@ -156,7 +156,7 @@ export default function Services() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit Service' : 'Add Service'}</DialogTitle>
             </DialogHeader>
@@ -254,7 +254,7 @@ export default function Services() {
         </Dialog>
 
       <Dialog open={isSpecialPriceDialogOpen} onOpenChange={setIsSpecialPriceDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Manage Special Prices</DialogTitle>
           </DialogHeader>

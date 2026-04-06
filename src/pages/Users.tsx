@@ -65,7 +65,7 @@ export default function Users() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>{isEdit ? 'Edit User Password' : 'Add User'}</DialogTitle>
             </DialogHeader>

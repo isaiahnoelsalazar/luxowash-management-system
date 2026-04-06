@@ -125,7 +125,7 @@ export default function Billing() {
 
       {/* Payment Dialog */}
       <Dialog open={isPayDialogOpen} onOpenChange={setIsPayDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Process Payment</DialogTitle>
           </DialogHeader>
@@ -188,7 +188,7 @@ export default function Billing() {
       </Dialog>
       {/* View Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Billing & Transaction Details</DialogTitle>
           </DialogHeader>
