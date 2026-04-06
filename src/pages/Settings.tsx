@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -28,8 +29,7 @@ export default function Settings() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/settings');
-      const data = await response.json();
+      const data = await api.get('/settings');
       if (data.ReferralThreshold) {
         setReferralThreshold(data.ReferralThreshold);
       }
@@ -41,14 +41,8 @@ export default function Settings() {
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ReferralThreshold: referralThreshold }),
-      });
-      if (response.ok) {
-        toast.success('Settings saved successfully');
-      }
+      await api.post('/settings', { ReferralThreshold: referralThreshold });
+      toast.success('Settings saved successfully');
     } catch (error) {
       toast.error('Failed to save settings');
     } finally {
