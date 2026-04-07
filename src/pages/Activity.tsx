@@ -4,6 +4,7 @@ import { useData } from '@/src/contexts/DataContext';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
 
 export default function Activity() {
   const { activities, loading } = useData();
@@ -39,6 +40,7 @@ export default function Activity() {
             <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Date & Time</TableHead>
                 <TableHead>Message</TableHead>
               </TableRow>
             </TableHeader>
@@ -46,6 +48,9 @@ export default function Activity() {
               {filteredActivities.length > 0 ? (
                 filteredActivities.map((a, index) => (
                   <TableRow key={index}>
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                      {a.ActivityDate ? format(new Date(a.ActivityDate), 'MMM d, yyyy h:mm a') : 'N/A'}
+                    </TableCell>
                     <TableCell className="font-medium text-foreground">{a.ActivityMessage}</TableCell>
                   </TableRow>
                 ))

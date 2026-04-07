@@ -22,13 +22,13 @@ export default function Transactions() {
   // Form State
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<{[name: string]: number}>({});
   const [selectedPackage, setSelectedPackage] = useState<string>('');
   const [selectedExtras, setSelectedExtras] = useState<{[key: string]: number}>({});
 
   // Reset services and package when vehicle changes
   React.useEffect(() => {
-    setSelectedServices([]);
+    setSelectedServices({});
     setSelectedPackage('');
     setSelectedExtras({});
   }, [selectedVehicle]);
@@ -61,7 +61,9 @@ export default function Transactions() {
     setSelectedPackage(pkgId);
     const includedServices = getServicesInPackage(pkgId);
     if (includedServices.length > 0) {
-      setSelectedServices(prev => prev.filter(srv => !includedServices.includes(srv)));
+      const newServices = { ...selectedServices };
+      includedServices.forEach(srv => delete newServices[srv]);
+      setSelectedServices(newServices);
     }
   };
 
@@ -85,7 +87,7 @@ export default function Transactions() {
 
       // Add Services Price
       const includedServices = getServicesInPackage(selectedPackage);
-      selectedServices.forEach(srvName => {
+      Object.entries(selectedServices).forEach(([srvName, qty]) => {
         if (!includedServices.includes(srvName)) {
           const srv = services.find(s => s.ServiceName === srvName);
           if (srv) {
@@ -96,13 +98,15 @@ export default function Transactions() {
               sp.VehicleModel === vehicle?.VehicleModel
             );
 
+            let price = 0;
             if (specialPrice) {
-              total += Number(specialPrice.SpecialPrice);
+              price = Number(specialPrice.SpecialPrice);
             } else if (vehicle?.VehicleModel === 'MOTORCYCLE' && srv.ServiceId === 'S_RBWRM' && size === 'M') {
-              total += srv.ServicePriceSizeL || 0;
+              price = srv.ServicePriceSizeL || 0;
             } else {
-              total += srv[`ServicePrice${sizeKey}`] || 0;
+              price = srv[`ServicePrice${sizeKey}`] || 0;
             }
+            total += price * Number(qty);
           }
         }
       });
@@ -157,9 +161,19 @@ export default function Transactions() {
     const finalExtrasList = [formattedExtras, customExtras].filter(Boolean).join(' | ');
     const finalExtras = isTruck ? (finalExtrasList ? `${finalExtrasList} | Notes: ${truckNotes}` : `Notes: ${truckNotes}`) : finalExtrasList;
 
+    const serviceIdList = isTruck ? '' : Object.entries(selectedServices)
+      .map(([name, qty]) => {
+        const srv = services.find(s => s.ServiceName === name);
+        if (!srv) return '';
+        const quantity = Number(qty);
+        return quantity > 1 ? `${srv.ServiceId}:${quantity}` : srv.ServiceId;
+      })
+      .filter(Boolean)
+      .join(',');
+
     const payload = {
       EmployeeIdList: selectedEmployees.join(','),
-      ServiceIdList: isTruck ? '' : selectedServices.map(name => services.find(s => s.ServiceName === name)?.ServiceId).filter(Boolean).join(','),
+      ServiceIdList: serviceIdList,
       PackageId: isTruck ? '' : selectedPackage,
       Extras: finalExtras,
       VehicleId: vehicleId,
@@ -351,19 +365,48 @@ export default function Transactions() {
                     }).map(srv => {
                       const isIncluded = getServicesInPackage(selectedPackage).includes(srv.ServiceName);
                       return (
-                        <div key={srv.ServiceName} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={`srv-${srv.ServiceName}`} 
-                            checked={isIncluded || selectedServices.includes(srv.ServiceName)}
-                            disabled={isIncluded}
-                            onCheckedChange={(checked) => {
-                              if (checked) setSelectedServices([...selectedServices, srv.ServiceName]);
-                              else setSelectedServices(selectedServices.filter(name => name !== srv.ServiceName));
-                            }}
-                          />
-                          <label htmlFor={`srv-${srv.ServiceName}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            {srv.ServiceName} {isIncluded && <span className="text-xs text-blue-500 ml-1">(Included)</span>}
-                          </label>
+                        <div key={srv.ServiceName} className="flex items-center justify-between py-1 border-b last:border-0">
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`srv-${srv.ServiceName}`} 
+                              checked={isIncluded || !!selectedServices[srv.ServiceName]}
+                              disabled={isIncluded}
+                              onCheckedChange={(checked) => {
+                                if (checked) setSelectedServices({...selectedServices, [srv.ServiceName]: 1});
+                                else {
+                                  const newServices = { ...selectedServices };
+                                  delete newServices[srv.ServiceName];
+                                  setSelectedServices(newServices);
+                                }
+                              }}
+                            />
+                            <label htmlFor={`srv-${srv.ServiceName}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                              {srv.ServiceName} {isIncluded && <span className="text-xs text-blue-500 ml-1">(Included)</span>}
+                            </label>
+                          </div>
+                          {selectedServices[srv.ServiceName] && srv.ServiceId === 'S_RBWPPPSA' && (
+                            <div className="flex items-center space-x-2">
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-6 w-6"
+                                onClick={() => setSelectedServices({ ...selectedServices, [srv.ServiceName]: Math.max(1, selectedServices[srv.ServiceName] - 1) })}
+                              >
+                                -
+                              </Button>
+                              <span className="text-sm w-4 text-center">{selectedServices[srv.ServiceName]}</span>
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-6 w-6"
+                                onClick={() => setSelectedServices({ ...selectedServices, [srv.ServiceName]: selectedServices[srv.ServiceName] + 1 })}
+                              >
+                                +
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}

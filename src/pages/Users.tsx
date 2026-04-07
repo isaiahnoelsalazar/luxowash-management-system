@@ -13,7 +13,7 @@ export default function Users() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [formData, setFormData] = useState({ Username: '', Password: '' });
+  const [formData, setFormData] = useState({ Username: '', Password: '', DailyRate: 0, ScheduleTime: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,13 +31,13 @@ export default function Users() {
   };
 
   const openEdit = (user: any) => {
-    setFormData({ Username: user.Username, Password: '' });
+    setFormData({ Username: user.Username, Password: '', DailyRate: user.DailyRate || 0, ScheduleTime: user.ScheduleTime || '' });
     setIsEdit(true);
     setIsDialogOpen(true);
   };
 
   const openAdd = () => {
-    setFormData({ Username: '', Password: '' });
+    setFormData({ Username: '', Password: '', DailyRate: 0, ScheduleTime: '' });
     setIsEdit(false);
     setIsDialogOpen(true);
   };
@@ -75,8 +75,18 @@ export default function Users() {
                 <Input value={formData.Username} onChange={e => setFormData({...formData, Username: e.target.value})} required disabled={isEdit} />
               </div>
               <div className="space-y-2">
-                <Label>Password</Label>
-                <Input type="password" value={formData.Password} onChange={e => setFormData({...formData, Password: e.target.value})} required />
+                <Label>Password {isEdit && '(Leave blank to keep current)'}</Label>
+                <Input type="password" value={formData.Password} onChange={e => setFormData({...formData, Password: e.target.value})} required={!isEdit} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Daily Rate (₱)</Label>
+                  <Input type="number" value={formData.DailyRate} onChange={e => setFormData({...formData, DailyRate: Number(e.target.value)})} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Schedule Time</Label>
+                  <Input value={formData.ScheduleTime} onChange={e => setFormData({...formData, ScheduleTime: e.target.value})} placeholder="e.g. 8:00 AM - 5:00 PM" />
+                </div>
               </div>
               <Button type="submit" className="w-full">Save</Button>
             </form>
@@ -92,6 +102,9 @@ export default function Users() {
             <TableHeader>
               <TableRow>
                 <TableHead>Username</TableHead>
+                <TableHead>Daily Rate</TableHead>
+                <TableHead>Schedule</TableHead>
+                <TableHead>Last Login</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -99,8 +112,11 @@ export default function Users() {
               {filteredUsers.map((u) => (
                 <TableRow key={u.Username}>
                   <TableCell className="font-medium">{u.Username}</TableCell>
+                  <TableCell>₱{Number(u.DailyRate || 0).toLocaleString()}</TableCell>
+                  <TableCell>{u.ScheduleTime || 'N/A'}</TableCell>
+                  <TableCell>{u.LastLogin || 'Never'}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => openEdit(u)}>Change Password</Button>
+                    <Button variant="outline" size="sm" onClick={() => openEdit(u)}>Edit</Button>
                   </TableCell>
                 </TableRow>
               ))}
