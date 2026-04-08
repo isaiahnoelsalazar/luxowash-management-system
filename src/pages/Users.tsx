@@ -8,14 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+
 export default function Users() {
   const { users, loading, refreshUsers } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [formData, setFormData] = useState({ Username: '', Password: '', DailyRate: 0, ScheduleTime: '' });
+  const [formData, setFormData] = useState({ Username: '', Password: '', DailyRate: 0, ScheduleTime: '', Role: 'user' });
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +53,7 @@ export default function Users() {
     }
     setStartTime(st);
     setEndTime(et);
-    setFormData({ Username: user.Username, Password: '', DailyRate: user.DailyRate || 0, ScheduleTime: user.ScheduleTime || '' });
+    setFormData({ Username: user.Username, Password: '', DailyRate: user.DailyRate || 0, ScheduleTime: user.ScheduleTime || '', Role: user.Role || 'user' });
     setIsEdit(true);
     setIsDialogOpen(true);
   };
@@ -56,7 +61,7 @@ export default function Users() {
   const openAdd = () => {
     setStartTime('');
     setEndTime('');
-    setFormData({ Username: '', Password: '', DailyRate: 0, ScheduleTime: '' });
+    setFormData({ Username: '', Password: '', DailyRate: 0, ScheduleTime: '', Role: 'user' });
     setIsEdit(false);
     setIsDialogOpen(true);
   };
@@ -71,7 +76,7 @@ export default function Users() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">User Accounts</h1>
-        <Button onClick={openAdd}>Add User</Button>
+        {isAdmin && <Button onClick={openAdd}>Add User</Button>}
       </div>
 
       <div className="mb-4">
@@ -112,37 +117,55 @@ export default function Users() {
                   minLength={6}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Daily Rate (₱)</Label>
-                  <Input 
-                    type="number" 
-                    value={formData.DailyRate} 
-                    onChange={e => setFormData({...formData, DailyRate: Number(e.target.value)})} 
-                    required 
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Schedule Time</Label>
-                  <div className="flex items-center gap-2">
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select 
+                  value={formData.Role} 
+                  onValueChange={(val) => setFormData({...formData, Role: val})}
+                  disabled={isEdit}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.Role === 'user' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Daily Rate (₱)</Label>
                     <Input 
-                      type="time" 
-                      value={startTime} 
-                      onChange={e => setStartTime(e.target.value)} 
-                      required
-                    />
-                    <span>-</span>
-                    <Input 
-                      type="time" 
-                      value={endTime} 
-                      onChange={e => setEndTime(e.target.value)} 
-                      required
+                      type="number" 
+                      value={formData.DailyRate} 
+                      onChange={e => setFormData({...formData, DailyRate: Number(e.target.value)})} 
+                      required 
+                      min="0"
+                      step="0.01"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Schedule Time</Label>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        type="time" 
+                        value={startTime} 
+                        onChange={e => setStartTime(e.target.value)} 
+                        required
+                      />
+                      <span>-</span>
+                      <Input 
+                        type="time" 
+                        value={endTime} 
+                        onChange={e => setEndTime(e.target.value)} 
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
               <Button type="submit" className="w-full">Save</Button>
             </form>
           </DialogContent>
@@ -157,22 +180,30 @@ export default function Users() {
             <TableHeader>
               <TableRow>
                 <TableHead>Username</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Daily Rate</TableHead>
                 <TableHead>Schedule</TableHead>
                 <TableHead>Last Login</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {isAdmin && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredUsers.map((u) => (
                 <TableRow key={u.Username}>
                   <TableCell className="font-medium">{u.Username}</TableCell>
-                  <TableCell>₱{Number(u.DailyRate || 0).toLocaleString()}</TableCell>
-                  <TableCell>{u.ScheduleTime || 'N/A'}</TableCell>
-                  <TableCell>{u.LastLogin || 'Never'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => openEdit(u)}>Edit</Button>
+                  <TableCell>
+                    <Badge variant={u.Role === 'admin' ? 'default' : 'secondary'}>
+                      {u.Role === 'admin' ? 'Admin' : 'User'}
+                    </Badge>
                   </TableCell>
+                  <TableCell>{u.Role === 'admin' ? 'N/A' : `₱${Number(u.DailyRate || 0).toLocaleString()}`}</TableCell>
+                  <TableCell>{u.Role === 'admin' ? 'N/A' : (u.ScheduleTime || 'N/A')}</TableCell>
+                  <TableCell>{u.LastLogin || 'Never'}</TableCell>
+                  {isAdmin && (
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" onClick={() => openEdit(u)}>Edit</Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
