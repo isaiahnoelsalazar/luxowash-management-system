@@ -329,7 +329,7 @@ export default function Reports() {
             {currentUser.role !== 'admin' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>My Salary (User A - {currentUser.username})</CardTitle>
+                  <CardTitle>My Salary ({currentUser.username})</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
