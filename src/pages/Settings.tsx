@@ -22,6 +22,8 @@ export default function Settings() {
   const { theme, setTheme } = useTheme();
   const [referralThreshold, setReferralThreshold] = useState<string>('5');
   const [loading, setLoading] = useState(false);
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
 
   useEffect(() => {
     fetchSettings();
@@ -102,38 +104,40 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-foreground">Business Rules</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Configure referral system and other business logic.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="referralThreshold" className="text-foreground">Referral Threshold for Discount</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="referralThreshold"
-                    type="number"
-                    value={referralThreshold}
-                    onChange={(e) => setReferralThreshold(e.target.value)}
-                    className="bg-background text-foreground"
-                    placeholder="e.g. 5"
-                  />
-                  <Button onClick={saveSettings} disabled={loading}>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save
-                  </Button>
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-foreground">Business Rules</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Configure referral system and other business logic.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="referralThreshold" className="text-foreground">Referral Threshold for Discount</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="referralThreshold"
+                      type="number"
+                      value={referralThreshold}
+                      onChange={(e) => setReferralThreshold(e.target.value)}
+                      className="bg-background text-foreground"
+                      placeholder="e.g. 5"
+                    />
+                    <Button onClick={saveSettings} disabled={loading}>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Number of successful referrals required for a customer to be eligible for a discount.
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Number of successful referrals required for a customer to be eligible for a discount.
-                </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

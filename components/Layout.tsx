@@ -4,7 +4,6 @@ import { LayoutDashboard, Users, Car, UserCircle, Receipt, FileText, Activity as
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import logo from "../src/luxowash_logo.jpg";
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -25,6 +24,13 @@ const navItems = [
 export default function Layout({ children, user, onLogout }: { children: React.ReactNode; user: any; onLogout: () => void }) {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const filteredNavItems = navItems.filter(item => {
+    if (user.role !== 'admin') {
+      if (['Reports', 'Activity Log'].includes(item.name)) return false;
+    }
+    return true;
+  });
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-card text-card-foreground">

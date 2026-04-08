@@ -25,6 +25,8 @@ export default function Services() {
   const [isEdit, setIsEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [specialPrices, setSpecialPrices] = useState<any[]>([]);
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
   const [specialPriceForm, setSpecialPriceForm] = useState({
     ServiceId: '',
     VehicleBrand: '',
@@ -140,10 +142,12 @@ export default function Services() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Services</h1>
-        <div className="space-x-2">
-          <Button variant="outline" onClick={() => setIsSpecialPriceDialogOpen(true)}>Manage Special Prices</Button>
-          <Button onClick={openAdd}>Add Service</Button>
-        </div>
+        {isAdmin && (
+          <div className="space-x-2">
+            <Button variant="outline" onClick={() => setIsSpecialPriceDialogOpen(true)}>Manage Special Prices</Button>
+            <Button onClick={openAdd}>Add Service</Button>
+          </div>
+        )}
       </div>
 
       <div className="mb-4">
@@ -412,7 +416,7 @@ export default function Services() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => openEdit(srv)}>Edit</Button>
+                    {isAdmin && <Button variant="outline" size="sm" onClick={() => openEdit(srv)}>Edit</Button>}
                   </TableCell>
                 </TableRow>
               ))

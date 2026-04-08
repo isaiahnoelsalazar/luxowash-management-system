@@ -13,11 +13,15 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 export default function Transactions() {
-  const { transactions, activeEmployees, employees: allEmployees, vehicles, services, packages, extras: availableExtras, loading, refreshTransactions, fetchAll } = useData();
+  const { transactions, billings, activeEmployees, employees: allEmployees, vehicles, services, packages, extras: availableExtras, loading, refreshTransactions, fetchAll } = useData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedTransactionDetails, setSelectedTransactionDetails] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
 
   // Form State
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
@@ -172,6 +176,7 @@ export default function Transactions() {
       .join(',');
 
     const payload = {
+      TransactionId: editingTransactionId,
       EmployeeIdList: selectedEmployees.join(','),
       ServiceIdList: serviceIdList,
       PackageId: isTruck ? '' : selectedPackage,
@@ -183,19 +188,25 @@ export default function Transactions() {
     };
 
     try {
-      await api.post('/transactions', payload);
+      if (isEdit && editingTransactionId) {
+        await api.put('/transactions', payload);
+      } else {
+        await api.post('/transactions', payload);
+      }
       setIsDialogOpen(false);
       resetForm();
       fetchAll();
     } catch (error) {
-      console.error('Failed to create transaction', error);
+      console.error('Failed to save transaction', error);
     }
   };
 
   const resetForm = () => {
+    setIsEdit(false);
+    setEditingTransactionId(null);
     setSelectedEmployees([]);
     setSelectedVehicle('');
-    setSelectedServices([]);
+    setSelectedServices({});
     setSelectedPackage('');
     setSelectedExtras({});
     setDiscount(0);
@@ -216,6 +227,63 @@ export default function Transactions() {
   const openViewDialog = (transaction: any) => {
     setSelectedTransactionDetails(transaction);
     setIsViewDialogOpen(true);
+  };
+
+  const openEditDialog = (t: any) => {
+    const vehicle = vehicles.find(v => v.VehicleId === t.VehicleId);
+    if (!vehicle) return;
+
+    setIsEdit(true);
+    setEditingTransactionId(t.TransactionId);
+    setSelectedVehicle(`${vehicle.PlateNumber} - ${vehicle.VehicleBrand} ${vehicle.VehicleModel}`);
+    setSelectedEmployees(t.EmployeeIdList ? t.EmployeeIdList.split(',') : []);
+    setSelectedPackage(t.PackageId || '');
+    setDiscount(t.Discount || 0);
+    
+    // Parse Services
+    const srvs: {[name: string]: number} = {};
+    if (t.ServiceIdList) {
+      t.ServiceIdList.split(',').forEach((entry: string) => {
+        const [id, qty] = entry.split(':');
+        const srv = services.find(s => s.ServiceId === id);
+        if (srv) srvs[srv.ServiceName] = qty ? Number(qty) : 1;
+      });
+    }
+    setSelectedServices(srvs);
+
+    // Parse Extras
+    const exts: {[key: string]: number} = {};
+    if (t.Extras) {
+      // This is tricky because Extras is a combined string. 
+      // For simplicity, we might just let them edit the customExtras field if it's complex,
+      // but let's try to match managed extras if they follow the pattern "Name (Qty)"
+      const parts = t.Extras.split(' | ');
+      const managedPart = parts[0];
+      if (managedPart) {
+        managedPart.split(', ').forEach((entry: string) => {
+          const match = entry.match(/(.+) \((\d+)\)/);
+          if (match) {
+            const name = match[1];
+            const qty = Number(match[2]);
+            const extra = availableExtras.find(e => e.ExtraName === name);
+            if (extra) exts[extra.ExtraId] = qty;
+          } else {
+            // Check if it's a non-qty extra
+            const extra = availableExtras.find(e => e.ExtraName === entry);
+            if (extra) exts[extra.ExtraId] = 1;
+          }
+        });
+      }
+      setCustomExtras(parts[1] || '');
+      if (vehicle.VehicleModel === 'TRUCK') {
+        const notesPart = parts.find((p: string) => p.startsWith('Notes: '));
+        if (notesPart) setTruckNotes(notesPart.replace('Notes: ', ''));
+        const billing = billings.find(b => b.BillingId === t.TransactionId);
+        if (billing) setTruckPrice(Number(billing.TransactionBalance));
+      }
+    }
+
+    setIsDialogOpen(true);
   };
 
   const busyEmployeeIds = new Set<string>();
@@ -529,7 +597,7 @@ export default function Transactions() {
                 <span className="text-2xl font-bold text-primary">₱{calculateTotal().toLocaleString()}</span>
               </div>
 
-              <Button type="submit" className="w-full">Create Transaction</Button>
+              <Button type="submit" className="w-full">{isEdit ? 'Update Transaction' : 'Create Transaction'}</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -564,6 +632,9 @@ export default function Transactions() {
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => openViewDialog(t)}>View</Button>
+                      {t.TransactionStatus === 'Ready' && (
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(t)}>Edit</Button>
+                      )}
                       <Select 
                         value={t.TransactionStatus} 
                         onValueChange={(val) => updateStatus(t.TransactionId, val)}

@@ -24,6 +24,8 @@ export default function Extras() {
     ExtraType: 'Per Piece',
     ExtraStatus: 'Available'
   });
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,9 +89,11 @@ export default function Extras() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Extras Management</h1>
-        <Button onClick={openAdd}>
-          <Plus className="mr-2 h-4 w-4" /> Add Extra
-        </Button>
+        {isAdmin && (
+          <Button onClick={openAdd}>
+            <Plus className="mr-2 h-4 w-4" /> Add Extra
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center space-x-2">
@@ -139,12 +143,16 @@ export default function Extras() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(extra)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteExtra(extra.ExtraId)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {isAdmin && (
+                        <>
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(extra)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteExtra(extra.ExtraId)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

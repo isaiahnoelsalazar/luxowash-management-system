@@ -25,6 +25,8 @@ export default function Packages() {
     PackagePriceSizeXXL: 0,
     PackageStatus: 'Available'
   });
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +88,7 @@ export default function Packages() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Packages</h1>
-        <Button onClick={openAdd}>Add Package</Button>
+        {isAdmin && <Button onClick={openAdd}>Add Package</Button>}
       </div>
 
       <div className="mb-4">
@@ -252,7 +254,7 @@ export default function Packages() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => openEdit(pkg)}>Edit</Button>
+                    {isAdmin && <Button variant="outline" size="sm" onClick={() => openEdit(pkg)}>Edit</Button>}
                   </TableCell>
                 </TableRow>
               ))

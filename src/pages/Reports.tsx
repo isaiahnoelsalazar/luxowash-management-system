@@ -1,20 +1,37 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { api } from '@/lib/api';
 import { useData } from '@/src/contexts/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, parseISO, startOfDay, startOfWeek, startOfMonth, isSameDay, isSameWeek, isSameMonth, isWithinInterval, endOfDay } from 'date-fns';
+import { format, parseISO, startOfDay, startOfWeek, startOfMonth, isSameDay, isSameWeek, isSameMonth, isWithinInterval, endOfDay, parse } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function Reports() {
   const { transactions, billings, employees, services, vehicles, users, activities, loading: dataLoading } = useData();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedEmployee, setExpandedEmployee] = useState<string | null>(null);
   const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+
+  if (currentUser.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Access Denied</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>You do not have permission to view reports.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const [salaryStartDate, setSalaryStartDate] = useState<string>(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [salaryEndDate, setSalaryEndDate] = useState<string>(format(endOfDay(new Date()), 'yyyy-MM-dd'));
@@ -183,26 +200,34 @@ export default function Reports() {
     const now = new Date();
 
     reports.forEach(r => {
-      if (!r.DateCreated) return;
-      const date = parseISO(r.DateCreated);
+      const dateStr = r.DateUpdated || r.DateCreated;
+      if (!dateStr) return;
+      const date = parseISO(dateStr);
       let key = '';
+      let sortKey = '';
 
       if (period === 'daily') {
         if (isSameMonth(date, now)) {
           key = format(date, 'MMM dd');
+          sortKey = format(date, 'yyyyMMdd');
         }
       } else if (period === 'weekly') {
-        key = `Week of ${format(startOfWeek(date), 'MMM dd')}`;
+        const start = startOfWeek(date);
+        key = `Week of ${format(start, 'MMM dd')}`;
+        sortKey = format(start, 'yyyyMMdd');
       } else if (period === 'monthly') {
         key = format(date, 'MMM yyyy');
+        sortKey = format(date, 'yyyyMM');
       }
 
       if (key) {
-        dataMap.set(key, (dataMap.get(key) || 0) + (r.BalancePaid || 0));
+        const current = dataMap.get(key) || { name: key, value: 0, sortKey };
+        current.value += (r.BalancePaid || 0);
+        dataMap.set(key, current);
       }
     });
 
-    return Array.from(dataMap.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => a.name.localeCompare(b.name));
+    return Array.from(dataMap.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   };
 
   return (
@@ -315,11 +340,43 @@ export default function Reports() {
                   </TableHeader>
                   <TableBody>
                     {salaryData.employeeSalaries?.map((emp: any) => (
-                      <TableRow key={emp.name}>
-                        <TableCell className="font-medium">{emp.name}</TableCell>
-                        <TableCell>{emp.transactions.length} jobs</TableCell>
-                        <TableCell className="text-right font-bold text-green-600">₱{emp.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                      </TableRow>
+                      <React.Fragment key={emp.name}>
+                        <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => setExpandedEmployee(expandedEmployee === emp.name ? null : emp.name)}>
+                          <TableCell className="font-medium flex items-center gap-2">
+                            {expandedEmployee === emp.name ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            {emp.name}
+                          </TableCell>
+                          <TableCell>{emp.transactions.length} jobs</TableCell>
+                          <TableCell className="text-right font-bold text-green-600">₱{emp.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                        </TableRow>
+                        {expandedEmployee === emp.name && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="p-0">
+                              <div className="bg-muted/30 p-4 space-y-2">
+                                <p className="text-sm font-semibold">Job Details:</p>
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead className="h-8 text-xs">Date</TableHead>
+                                      <TableHead className="h-8 text-xs">Transaction ID</TableHead>
+                                      <TableHead className="h-8 text-xs text-right">Commission</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {emp.transactions.map((t: any, i: number) => (
+                                      <TableRow key={i}>
+                                        <TableCell className="py-1 text-xs">{format(parseISO(t.date), 'MMM d, h:mm a')}</TableCell>
+                                        <TableCell className="py-1 text-xs">{t.id.substring(0, 8)}...</TableCell>
+                                        <TableCell className="py-1 text-xs text-right">₱{t.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     ))}
                   </TableBody>
                 </Table>

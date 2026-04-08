@@ -17,6 +17,8 @@ export default function Employees() {
   const [formData, setFormData] = useState({
     EmployeeId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', EmployeeAddress: ''
   });
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +70,7 @@ export default function Employees() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Employees</h1>
-        <Button onClick={openAdd}>Add Employee</Button>
+        {isAdmin && <Button onClick={openAdd}>Add Employee</Button>}
       </div>
 
       <div className="mb-4">
@@ -150,7 +152,7 @@ export default function Employees() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(emp)}>Edit</Button>
+                      {isAdmin && <Button variant="outline" size="sm" onClick={() => openEdit(emp)}>Edit</Button>}
                       {isActive ? (
                         <Button variant="destructive" size="sm" onClick={() => handleTimeAction(emp.EmployeeId, 'out')}>Time Out</Button>
                       ) : !hasTimedInToday ? (

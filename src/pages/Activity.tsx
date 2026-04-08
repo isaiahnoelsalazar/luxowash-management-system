@@ -9,6 +9,22 @@ import { format } from 'date-fns';
 export default function Activity() {
   const { activities, loading } = useData();
   const [searchQuery, setSearchQuery] = useState('');
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+
+  if (currentUser.role !== 'admin') {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-destructive">Access Denied</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>You do not have permission to view activity logs.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const filteredActivities = activities.filter(a => {
     const message = (a.ActivityMessage || '').toLowerCase();

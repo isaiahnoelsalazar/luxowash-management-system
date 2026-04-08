@@ -25,6 +25,8 @@ export default function Customers() {
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [referralThreshold, setReferralThreshold] = useState(5);
+  const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
   
   const [customerForm, setCustomerForm] = useState({
     CustomerId: '', LastName: '', FirstName: '', MiddleName: '', MobileNumber: '', CustomerAddress: '', ReferralCode: '', ReferredBy: ''
@@ -150,10 +152,12 @@ export default function Customers() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Customers & Vehicles</h1>
-        <Button onClick={openAddCustomer}>
-          <UserPlus className="w-4 h-4 mr-2" />
-          Add New Customer
-        </Button>
+        {isAdmin && (
+          <Button onClick={openAddCustomer}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add New Customer
+          </Button>
+        )}
       </div>
 
       <div className="mb-4">
@@ -332,8 +336,12 @@ export default function Customers() {
                       Discount Eligible!
                     </Badge>
                   )}
-                  <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
-                  <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
+                  {isAdmin && (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
+                      <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
+                    </>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -362,10 +370,14 @@ export default function Customers() {
                           <TableCell className="text-foreground">{veh.VehicleModel}</TableCell>
                           <TableCell className="text-foreground">{veh.VehicleSize}</TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => openEditVehicle(veh)} className="text-foreground hover:bg-accent">Edit</Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteVehicle(veh.VehicleId)} className="text-destructive hover:bg-destructive/10 hover:text-destructive ml-2">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            {isAdmin && (
+                              <>
+                                <Button variant="ghost" size="sm" onClick={() => openEditVehicle(veh)} className="text-foreground hover:bg-accent">Edit</Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleDeleteVehicle(veh.VehicleId)} className="text-destructive hover:bg-destructive/10 hover:text-destructive ml-2">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

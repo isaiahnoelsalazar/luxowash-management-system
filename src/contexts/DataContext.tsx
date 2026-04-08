@@ -66,7 +66,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshServices = async () => { const res = await api.get('/services'); setServices(res); };
   const refreshPackages = async () => { const res = await api.get('/packages'); setPackages(res); };
   const refreshExtras = async () => { const res = await api.get('/extras'); setExtras(res); };
-  const refreshActivities = async () => { const res = await api.get('/activity'); setActivities(res.reverse()); };
+  const refreshActivities = async () => { const res = await api.get('/activity'); setActivities(res); };
   const refreshUsers = async () => { const res = await api.get('/users'); setUsers(res); };
 
   const fetchAll = async () => {
