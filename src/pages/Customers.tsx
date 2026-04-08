@@ -74,9 +74,9 @@ export default function Customers() {
         setNewlyCreatedCustomerId(res.CustomerId);
         setIsConfirmVehicleDialogOpen(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save customer', error);
-      toast.error('Failed to save customer');
+      toast.error(error.message || 'Failed to save customer');
     }
   };
 
@@ -110,9 +110,9 @@ export default function Customers() {
         setNewlyCreatedVehicleId(res.VehicleId);
         setIsConfirmTransactionDialogOpen(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save vehicle', error);
-      toast.error('Failed to save vehicle');
+      toast.error(error.message || 'Failed to save vehicle');
     }
   };
 
