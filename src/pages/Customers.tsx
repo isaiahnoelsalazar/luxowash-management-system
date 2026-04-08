@@ -174,26 +174,26 @@ export default function Customers() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>First Name</Label>
-                <Input value={customerForm.FirstName} onChange={e => setCustomerForm({...customerForm, FirstName: e.target.value})} required className="bg-background text-foreground" />
+                <Input value={customerForm.FirstName} onChange={e => setCustomerForm({...customerForm, FirstName: e.target.value})} required minLength={2} maxLength={50} className="bg-background text-foreground" />
               </div>
               <div className="space-y-2">
                 <Label>Last Name</Label>
-                <Input value={customerForm.LastName} onChange={e => setCustomerForm({...customerForm, LastName: e.target.value})} required className="bg-background text-foreground" />
+                <Input value={customerForm.LastName} onChange={e => setCustomerForm({...customerForm, LastName: e.target.value})} required minLength={2} maxLength={50} className="bg-background text-foreground" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Mobile Number</Label>
-                <Input value={customerForm.MobileNumber || ''} onChange={e => setCustomerForm({...customerForm, MobileNumber: e.target.value})} className="bg-background text-foreground" />
+                <Input value={customerForm.MobileNumber || ''} onChange={e => setCustomerForm({...customerForm, MobileNumber: e.target.value})} pattern="[0-9+\-\s()]+" title="Only numbers, spaces, and + - ( ) are allowed" maxLength={20} className="bg-background text-foreground" />
               </div>
               <div className="space-y-2">
                 <Label>Referred By (Code)</Label>
-                <Input value={customerForm.ReferredBy || ''} onChange={e => setCustomerForm({...customerForm, ReferredBy: e.target.value.toUpperCase()})} placeholder="Enter referral code" className="bg-background text-foreground" />
+                <Input value={customerForm.ReferredBy || ''} onChange={e => setCustomerForm({...customerForm, ReferredBy: e.target.value.toUpperCase()})} placeholder="Enter referral code" maxLength={20} className="bg-background text-foreground" />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Address</Label>
-              <Input value={customerForm.CustomerAddress || ''} onChange={e => setCustomerForm({...customerForm, CustomerAddress: e.target.value})} className="bg-background text-foreground" />
+              <Input value={customerForm.CustomerAddress || ''} onChange={e => setCustomerForm({...customerForm, CustomerAddress: e.target.value})} maxLength={200} className="bg-background text-foreground" />
             </div>
             {customerForm.CustomerId && (
               <div className="space-y-2">
@@ -262,7 +262,7 @@ export default function Customers() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Plate Number</Label>
-                <Input value={vehicleForm.PlateNumber} onChange={e => setVehicleForm({...vehicleForm, PlateNumber: e.target.value.toUpperCase()})} required className="bg-background text-foreground" />
+                <Input value={vehicleForm.PlateNumber} onChange={e => setVehicleForm({...vehicleForm, PlateNumber: e.target.value.toUpperCase()})} required maxLength={20} pattern="[A-Z0-9\-\s]+" title="Only uppercase letters, numbers, spaces, and hyphens are allowed" className="bg-background text-foreground" />
               </div>
               <div className="space-y-2">
                 <Label>Size</Label>

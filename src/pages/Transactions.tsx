@@ -434,6 +434,7 @@ export default function Transactions() {
                       onChange={e => setTruckNotes(e.target.value)} 
                       placeholder="Enter details..."
                       required
+                      maxLength={200}
                     />
                   </div>
                 </div>
@@ -458,6 +459,7 @@ export default function Transactions() {
                       value={customExtras} 
                       onChange={e => setCustomExtras(e.target.value)} 
                       placeholder="e.g. Special Request"
+                      maxLength={200}
                     />
                   </div>
                 </div>

@@ -190,6 +190,8 @@ export default function Services() {
                     value={formData.ServicePriceSizeS} 
                     onChange={e => setFormData({...formData, ServicePriceSizeS: parseFloat(e.target.value) || 0})} 
                     required 
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div className="space-y-2">
@@ -199,6 +201,8 @@ export default function Services() {
                     value={formData.ServicePriceSizeM} 
                     onChange={e => setFormData({...formData, ServicePriceSizeM: parseFloat(e.target.value) || 0})} 
                     required 
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div className="space-y-2">
@@ -208,6 +212,8 @@ export default function Services() {
                     value={formData.ServicePriceSizeL} 
                     onChange={e => setFormData({...formData, ServicePriceSizeL: parseFloat(e.target.value) || 0})} 
                     required 
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div className="space-y-2">
@@ -217,6 +223,8 @@ export default function Services() {
                     value={formData.ServicePriceSizeXL} 
                     onChange={e => setFormData({...formData, ServicePriceSizeXL: parseFloat(e.target.value) || 0})} 
                     required 
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div className="space-y-2">
@@ -226,6 +234,8 @@ export default function Services() {
                     value={formData.ServicePriceSizeXXL} 
                     onChange={e => setFormData({...formData, ServicePriceSizeXXL: parseFloat(e.target.value) || 0})} 
                     required 
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div className="space-y-2">

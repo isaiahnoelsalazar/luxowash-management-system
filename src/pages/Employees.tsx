@@ -89,24 +89,24 @@ export default function Employees() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>First Name</Label>
-                  <Input value={formData.FirstName} onChange={e => setFormData({...formData, FirstName: e.target.value})} required />
+                  <Input value={formData.FirstName} onChange={e => setFormData({...formData, FirstName: e.target.value})} required minLength={2} maxLength={50} />
                 </div>
                 <div className="space-y-2">
                   <Label>Last Name</Label>
-                  <Input value={formData.LastName} onChange={e => setFormData({...formData, LastName: e.target.value})} required />
+                  <Input value={formData.LastName} onChange={e => setFormData({...formData, LastName: e.target.value})} required minLength={2} maxLength={50} />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Middle Name</Label>
-                <Input value={formData.MiddleName || ''} onChange={e => setFormData({...formData, MiddleName: e.target.value})} />
+                <Input value={formData.MiddleName || ''} onChange={e => setFormData({...formData, MiddleName: e.target.value})} maxLength={50} />
               </div>
               <div className="space-y-2">
                 <Label>Mobile Number</Label>
-                <Input value={formData.MobileNumber || ''} onChange={e => setFormData({...formData, MobileNumber: e.target.value})} />
+                <Input value={formData.MobileNumber || ''} onChange={e => setFormData({...formData, MobileNumber: e.target.value})} pattern="[0-9+\-\s()]+" title="Only numbers, spaces, and + - ( ) are allowed" maxLength={20} />
               </div>
               <div className="space-y-2">
                 <Label>Address</Label>
-                <Input value={formData.EmployeeAddress || ''} onChange={e => setFormData({...formData, EmployeeAddress: e.target.value})} />
+                <Input value={formData.EmployeeAddress || ''} onChange={e => setFormData({...formData, EmployeeAddress: e.target.value})} maxLength={200} />
               </div>
               <Button type="submit" className="w-full">Save</Button>
             </form>

@@ -3,16 +3,21 @@ import { api } from '@/lib/api';
 import { useData } from '@/src/contexts/DataContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, parseISO, startOfDay, startOfWeek, startOfMonth, isSameDay, isSameWeek, isSameMonth } from 'date-fns';
+import { format, parseISO, startOfDay, startOfWeek, startOfMonth, isSameDay, isSameWeek, isSameMonth, isWithinInterval, endOfDay } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function Reports() {
-  const { transactions, billings, employees, services, vehicles, users, loading: dataLoading } = useData();
+  const { transactions, billings, employees, services, vehicles, users, activities, loading: dataLoading } = useData();
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
+
+  const [salaryStartDate, setSalaryStartDate] = useState<string>(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [salaryEndDate, setSalaryEndDate] = useState<string>(format(endOfDay(new Date()), 'yyyy-MM-dd'));
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -29,7 +34,10 @@ export default function Reports() {
   }, []);
 
   const salaryData = useMemo(() => {
-    if (!transactions.length || !billings.length) return [];
+    if (!transactions.length || !billings.length) return { employeeSalaries: [], userASalaries: [] };
+
+    const start = salaryStartDate ? startOfDay(parseISO(salaryStartDate)) : new Date(0);
+    const end = salaryEndDate ? endOfDay(parseISO(salaryEndDate)) : new Date();
 
     const employeeSalaries: { [id: string]: { name: string; total: number; transactions: any[] } } = {};
     const userASalaries: { [username: string]: { total: number; details: any[] } } = {};
@@ -44,15 +52,37 @@ export default function Reports() {
       userASalaries[currentUser.username] = { total: 0, details: [] };
       const userRecord = users.find(u => u.Username === currentUser.username);
       if (userRecord && userRecord.DailyRate) {
-        // Simple daily rate logic: if they have a LastLogin, they get the rate for that day?
-        // For simplicity, let's just show the daily rate.
-        userASalaries[currentUser.username].total += Number(userRecord.DailyRate);
+        // Calculate daily rate based on unique login days within the date range
+        const loginDays = new Set<string>();
+        activities.forEach(a => {
+          if (a.ActivityMessage === `User ${currentUser.username} logged in.` && a.ActivityDate) {
+            const activityDate = parseISO(a.ActivityDate);
+            if (isWithinInterval(activityDate, { start, end })) {
+              loginDays.add(format(activityDate, 'yyyy-MM-dd'));
+            }
+          }
+        });
+        
+        const totalDailyRate = loginDays.size * Number(userRecord.DailyRate);
+        userASalaries[currentUser.username].total += totalDailyRate;
+        
+        if (loginDays.size > 0) {
+          userASalaries[currentUser.username].details.push({
+            id: 'daily_rate',
+            amount: totalDailyRate,
+            reason: `Daily Rate (${loginDays.size} days @ ₱${userRecord.DailyRate})`,
+            date: new Date().toISOString()
+          });
+        }
       }
     }
 
     transactions.forEach(t => {
       const billing = billings.find(b => b.BillingId === t.TransactionId);
       if (!billing || billing.BillingStatus !== 'Paid') return;
+
+      const transactionDate = parseISO(t.DateCreated);
+      if (!isWithinInterval(transactionDate, { start, end })) return;
 
       const vehicle = vehicles.find(v => v.VehicleId === t.VehicleId);
       const size = vehicle ? vehicle.VehicleSize : 'M';
@@ -146,7 +176,7 @@ export default function Reports() {
     });
 
     return { employeeSalaries: Object.values(employeeSalaries), userASalaries: Object.entries(userASalaries).map(([username, data]) => ({ username, ...data })) };
-  }, [transactions, billings, employees, services, vehicles, users, currentUser.username, currentUser.role]);
+  }, [transactions, billings, employees, services, vehicles, users, activities, currentUser.username, currentUser.role, salaryStartDate, salaryEndDate]);
 
   const processData = (period: 'daily' | 'weekly' | 'monthly') => {
     const dataMap = new Map();
@@ -242,6 +272,34 @@ export default function Reports() {
         </TabsContent>
         <TabsContent value="salary">
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Salary Filter</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-4 items-end">
+                  <div className="space-y-2 w-full sm:w-auto">
+                    <Label>Start Date</Label>
+                    <Input 
+                      type="date" 
+                      value={salaryStartDate} 
+                      onChange={(e) => setSalaryStartDate(e.target.value)}
+                      max={salaryEndDate}
+                    />
+                  </div>
+                  <div className="space-y-2 w-full sm:w-auto">
+                    <Label>End Date</Label>
+                    <Input 
+                      type="date" 
+                      value={salaryEndDate} 
+                      onChange={(e) => setSalaryEndDate(e.target.value)}
+                      min={salaryStartDate}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Employee Salary Breakdown (30% Base + Special Rates)</CardTitle>
