@@ -28,6 +28,7 @@ export default function Customers() {
   const [isConfirmVehicleDialogOpen, setIsConfirmVehicleDialogOpen] = useState(false);
   const [isConfirmTransactionDialogOpen, setIsConfirmTransactionDialogOpen] = useState(false);
   const [newlyCreatedCustomerId, setNewlyCreatedCustomerId] = useState<string | null>(null);
+  const [newlyCreatedVehicleId, setNewlyCreatedVehicleId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [referralThreshold, setReferralThreshold] = useState(5);
   const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
@@ -95,16 +96,18 @@ export default function Customers() {
     e.preventDefault();
     try {
       const isNew = !vehicleForm.VehicleId;
+      let res;
       if (vehicleForm.VehicleId) {
-        await api.put('/vehicles', vehicleForm);
+        res = await api.put('/vehicles', vehicleForm);
       } else {
-        await api.post('/vehicles', vehicleForm);
+        res = await api.post('/vehicles', vehicleForm);
       }
       setIsVehicleDialogOpen(false);
       refreshVehicles();
       toast.success('Vehicle saved successfully');
       
-      if (isNew) {
+      if (isNew && res.VehicleId) {
+        setNewlyCreatedVehicleId(res.VehicleId);
         setIsConfirmTransactionDialogOpen(true);
       }
     } catch (error) {
@@ -436,7 +439,7 @@ export default function Customers() {
               <Button variant="outline" onClick={() => setIsConfirmTransactionDialogOpen(false)}>Later</Button>
               <Button onClick={() => {
                 setIsConfirmTransactionDialogOpen(false);
-                navigate('/transactions');
+                navigate(`/transactions?new=true${newlyCreatedVehicleId ? `&vehicleId=${newlyCreatedVehicleId}` : ''}`);
               }}>Create Transaction</Button>
             </div>
           </div>

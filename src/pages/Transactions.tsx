@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { cn } from '@/lib/utils';
 
 export default function Transactions() {
   const { transactions, billings, activeEmployees, employees: allEmployees, vehicles, services, packages, extras: availableExtras, loading, refreshTransactions, fetchAll } = useData();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
@@ -219,6 +221,24 @@ export default function Transactions() {
     setTruckPrice(0);
     setTruckNotes('');
   };
+
+  useEffect(() => {
+    const isNew = searchParams.get('new') === 'true';
+    const vehicleId = searchParams.get('vehicleId');
+    
+    if (isNew && vehicles.length > 0) {
+      resetForm();
+      if (vehicleId) {
+        const vehicle = vehicles.find(v => v.VehicleId === vehicleId);
+        if (vehicle) {
+          setSelectedVehicle(`${vehicle.PlateNumber} - ${vehicle.VehicleBrand} ${vehicle.VehicleModel}`);
+        }
+      }
+      setIsDialogOpen(true);
+      // Clear params so it doesn't reopen on refresh
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, vehicles]);
 
   const updateStatus = async (id: string, status: string) => {
     try {
