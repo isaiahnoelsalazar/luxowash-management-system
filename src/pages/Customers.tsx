@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useData } from '@/src/contexts/DataContext';
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,11 @@ const uniqueBrands = Array.from(new Set(parsedModels.map(m => m.brand).filter(Bo
 
 export default function Customers() {
   const { customers, vehicles, loading, refreshCustomers, refreshVehicles } = useData();
+  const navigate = useNavigate();
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
   const [isConfirmVehicleDialogOpen, setIsConfirmVehicleDialogOpen] = useState(false);
+  const [isConfirmTransactionDialogOpen, setIsConfirmTransactionDialogOpen] = useState(false);
   const [newlyCreatedCustomerId, setNewlyCreatedCustomerId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [referralThreshold, setReferralThreshold] = useState(5);
@@ -91,6 +94,7 @@ export default function Customers() {
   const handleVehicleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const isNew = !vehicleForm.VehicleId;
       if (vehicleForm.VehicleId) {
         await api.put('/vehicles', vehicleForm);
       } else {
@@ -99,6 +103,10 @@ export default function Customers() {
       setIsVehicleDialogOpen(false);
       refreshVehicles();
       toast.success('Vehicle saved successfully');
+      
+      if (isNew) {
+        setIsConfirmTransactionDialogOpen(true);
+      }
     } catch (error) {
       console.error('Failed to save vehicle', error);
       toast.error('Failed to save vehicle');
@@ -412,6 +420,24 @@ export default function Customers() {
                 setIsConfirmVehicleDialogOpen(false);
                 if (newlyCreatedCustomerId) openAddVehicle(newlyCreatedCustomerId);
               }}>Add Now</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Confirm Add Transaction Dialog */}
+      <Dialog open={isConfirmTransactionDialogOpen} onOpenChange={setIsConfirmTransactionDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Create Transaction?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-muted-foreground">Vehicle added successfully! Would you like to proceed with creating a new transaction for this vehicle?</p>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setIsConfirmTransactionDialogOpen(false)}>Later</Button>
+              <Button onClick={() => {
+                setIsConfirmTransactionDialogOpen(false);
+                navigate('/transactions');
+              }}>Create Transaction</Button>
             </div>
           </div>
         </DialogContent>
