@@ -10,7 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
+import { Calendar as CalendarIcon, Search, Plus } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export default function Transactions() {
   const { transactions, billings, activeEmployees, employees: allEmployees, vehicles, services, packages, extras: availableExtras, loading, refreshTransactions, fetchAll } = useData();
@@ -20,6 +24,7 @@ export default function Transactions() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedTransactionDetails, setSelectedTransactionDetails] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
   const isAdmin = currentUser.role === 'admin';
 
@@ -313,14 +318,48 @@ export default function Transactions() {
     const status = t.TransactionStatus.toLowerCase();
     const query = searchQuery.toLowerCase();
     
-    return plate.includes(query) || id.includes(query) || status.includes(query);
+    const matchesQuery = plate.includes(query) || id.includes(query) || status.includes(query);
+    const matchesDate = !date || (t.DateCreated && isSameDay(new Date(t.DateCreated), date));
+    
+    return matchesQuery && matchesDate;
   });
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-primary">Transactions</h1>
-        <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>New Transaction</Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal bg-background text-foreground border-border",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>All Dates</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-background border-border" align="end">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+                className="bg-background text-foreground"
+              />
+              <div className="p-2 border-t border-border">
+                <Button variant="ghost" className="w-full text-xs" onClick={() => setDate(undefined)}>Clear Filter</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="flex-1 sm:flex-none">
+            <Plus className="w-4 h-4 mr-2" />
+            New Transaction
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4">

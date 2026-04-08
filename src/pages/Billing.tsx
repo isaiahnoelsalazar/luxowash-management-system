@@ -7,7 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
+import { Calendar as CalendarIcon, Search } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export default function Billing() {
   const { billings, transactions, vehicles, packages, services, loading, refreshBillings } = useData();
@@ -16,6 +20,7 @@ export default function Billing() {
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   const handlePayment = async () => {
     if (!selectedBill) return;
@@ -55,13 +60,44 @@ export default function Billing() {
     const status = b.BillingStatus.toLowerCase();
     const query = searchQuery.toLowerCase();
     
-    return plate.includes(query) || id.includes(query) || status.includes(query);
+    const matchesQuery = plate.includes(query) || id.includes(query) || status.includes(query);
+    const matchesDate = !date || (b.DateCreated && isSameDay(new Date(b.DateCreated), date));
+    
+    return matchesQuery && matchesDate;
   });
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-primary">Billing & Payments</h1>
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal bg-background text-foreground border-border",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>All Dates</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-background border-border" align="end">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+                className="bg-background text-foreground"
+              />
+              <div className="p-2 border-t border-border">
+                <Button variant="ghost" className="w-full text-xs" onClick={() => setDate(undefined)}>Clear Filter</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       <div className="mb-4">

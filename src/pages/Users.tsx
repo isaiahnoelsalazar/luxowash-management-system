@@ -193,7 +193,7 @@ export default function Users() {
                   <TableCell className="font-medium">{u.Username}</TableCell>
                   <TableCell>
                     <Badge variant={u.Role === 'admin' ? 'default' : 'secondary'}>
-                      {u.Role === 'admin' ? 'Admin' : 'User'}
+                      {u.Role ? u.Role.charAt(0).toUpperCase() + u.Role.slice(1) : 'N/A'}
                     </Badge>
                   </TableCell>
                   <TableCell>{u.Role === 'admin' ? 'N/A' : `₱${Number(u.DailyRate || 0).toLocaleString()}`}</TableCell>

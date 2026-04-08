@@ -23,6 +23,8 @@ export default function Customers() {
   const { customers, vehicles, loading, refreshCustomers, refreshVehicles } = useData();
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
+  const [isConfirmVehicleDialogOpen, setIsConfirmVehicleDialogOpen] = useState(false);
+  const [newlyCreatedCustomerId, setNewlyCreatedCustomerId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [referralThreshold, setReferralThreshold] = useState(5);
   const currentUser = JSON.parse(localStorage.getItem('luxowash_user') || '{}');
@@ -53,14 +55,21 @@ export default function Customers() {
   const handleCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      let res;
       if (customerForm.CustomerId) {
-        await api.put('/customers', customerForm);
+        res = await api.put('/customers', customerForm);
       } else {
-        await api.post('/customers', customerForm);
+        res = await api.post('/customers', customerForm);
       }
       setIsCustomerDialogOpen(false);
       refreshCustomers();
       toast.success('Customer saved successfully');
+      
+      if (!customerForm.CustomerId && res.CustomerId) {
+        // New customer added, ask to add vehicle
+        setNewlyCreatedCustomerId(res.CustomerId);
+        setIsConfirmVehicleDialogOpen(true);
+      }
     } catch (error) {
       console.error('Failed to save customer', error);
       toast.error('Failed to save customer');
@@ -152,12 +161,10 @@ export default function Customers() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-primary">Customers & Vehicles</h1>
-        {isAdmin && (
-          <Button onClick={openAddCustomer}>
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add New Customer
-          </Button>
-        )}
+        <Button onClick={openAddCustomer}>
+          <UserPlus className="w-4 h-4 mr-2" />
+          Add New Customer
+        </Button>
       </div>
 
       <div className="mb-4">
@@ -336,12 +343,12 @@ export default function Customers() {
                       Discount Eligible!
                     </Badge>
                   )}
-                  {isAdmin && (
-                    <>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
                       <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
-                      <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
-                    </>
-                  )}
+                    )}
+                    <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -391,6 +398,24 @@ export default function Customers() {
           );
         })}
       </div>
+      {/* Confirm Add Vehicle Dialog */}
+      <Dialog open={isConfirmVehicleDialogOpen} onOpenChange={setIsConfirmVehicleDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Add Vehicle?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-muted-foreground">Customer added successfully! Would you like to add a vehicle for this customer now?</p>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setIsConfirmVehicleDialogOpen(false)}>Later</Button>
+              <Button onClick={() => {
+                setIsConfirmVehicleDialogOpen(false);
+                if (newlyCreatedCustomerId) openAddVehicle(newlyCreatedCustomerId);
+              }}>Add Now</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
