@@ -4,6 +4,7 @@ import { LayoutDashboard, Users, Car, UserCircle, Receipt, FileText, Activity as
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import logo from "../src/luxowash_logo.jpg";
 
 const navItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
