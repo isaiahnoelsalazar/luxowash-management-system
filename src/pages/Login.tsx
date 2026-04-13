@@ -45,6 +45,7 @@ export default function Login({ onLogin }: { onLogin: (user: any) => void }) {
               <CardTitle className="text-foreground">Welcome back</CardTitle>
               <CardDescription className="text-muted-foreground">Enter your credentials to access your account.</CardDescription>
             </CardHeader>
+            <br>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-foreground">Username</Label>

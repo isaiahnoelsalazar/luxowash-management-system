@@ -416,7 +416,7 @@ export default function Services() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {isAdmin && <Button variant="outline" size="sm" onClick={() => openEdit(srv)}>Edit</Button>}
+                    {isAdmin && <Button variant="outline" onClick={() => openEdit(srv)}>Edit</Button>}
                   </TableCell>
                 </TableRow>
               ))

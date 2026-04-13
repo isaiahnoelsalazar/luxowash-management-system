@@ -146,10 +146,10 @@ export default function Extras() {
                       {isAdmin && (
                         <>
                           <Button variant="ghost" size="icon" onClick={() => openEdit(extra)}>
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-5 w-5" />
                           </Button>
                           <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteExtra(extra.ExtraId)}>
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </>
                       )}

@@ -152,13 +152,13 @@ export default function Employees() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      {isAdmin && <Button variant="outline" size="sm" onClick={() => openEdit(emp)}>Edit</Button>}
+                      {isAdmin && <Button variant="outline" onClick={() => openEdit(emp)}>Edit</Button>}
                       {isActive ? (
-                        <Button variant="destructive" size="sm" onClick={() => handleTimeAction(emp.EmployeeId, 'out')}>Time Out</Button>
+                        <Button variant="destructive" onClick={() => handleTimeAction(emp.EmployeeId, 'out')}>Time Out</Button>
                       ) : !hasTimedInToday ? (
-                        <Button variant="default" size="sm" onClick={() => handleTimeAction(emp.EmployeeId, 'in')}>Time In</Button>
+                        <Button variant="default" onClick={() => handleTimeAction(emp.EmployeeId, 'in')}>Time In</Button>
                       ) : (
-                        <Button variant="ghost" size="sm" disabled>Done Today</Button>
+                        <Button variant="ghost" disabled>Done Today</Button>
                       )}
                     </TableCell>
                   </TableRow>

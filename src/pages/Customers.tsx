@@ -354,11 +354,11 @@ export default function Customers() {
                       Discount Eligible!
                     </Badge>
                   )}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {isAdmin && (
-                      <Button variant="outline" size="sm" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
+                      <Button variant="outline" onClick={() => openEditCustomer(cust)}>Edit Info</Button>
                     )}
-                    <Button size="sm" onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
+                    <Button onClick={() => openAddVehicle(cust.CustomerId)}>Add Vehicle</Button>
                   </div>
                 </div>
               </CardHeader>
@@ -390,9 +390,9 @@ export default function Customers() {
                           <TableCell className="text-right">
                             {isAdmin && (
                               <>
-                                <Button variant="ghost" size="sm" onClick={() => openEditVehicle(veh)} className="text-foreground hover:bg-accent">Edit</Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleDeleteVehicle(veh.VehicleId)} className="text-destructive hover:bg-destructive/10 hover:text-destructive ml-2">
-                                  <Trash2 className="w-4 h-4" />
+                                <Button variant="ghost" onClick={() => openEditVehicle(veh)} className="text-foreground hover:bg-accent">Edit</Button>
+                                <Button variant="ghost" onClick={() => handleDeleteVehicle(veh.VehicleId)} className="text-destructive hover:bg-destructive/10 hover:text-destructive ml-2">
+                                  <Trash2 className="w-5 h-5" />
                                 </Button>
                               </>
                             )}

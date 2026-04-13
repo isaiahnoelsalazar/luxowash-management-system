@@ -143,9 +143,9 @@ export default function Billing() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => openViewDialog(b)}>View</Button>
+                      <Button variant="outline" onClick={() => openViewDialog(b)}>View</Button>
                       {b.BillingStatus === 'Unpaid' && trans?.TransactionStatus === 'Completed' && (
-                        <Button size="sm" onClick={() => openPayDialog(b)}>Pay Now</Button>
+                        <Button onClick={() => openPayDialog(b)}>Pay Now</Button>
                       )}
                       {b.BillingStatus === 'Paid' && (
                         <Button variant="outline" size="sm" onClick={() => openReceiptDialog(b)}>Receipt</Button>

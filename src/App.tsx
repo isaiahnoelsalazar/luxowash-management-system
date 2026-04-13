@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { DataProvider } from '@/src/contexts/DataContext';
 import { ThemeProvider } from '@/src/contexts/ThemeContext';
+import { Toaster } from 'sonner';
 import Login from '@/src/pages/Login';
 import Dashboard from '@/src/pages/Dashboard';
 import Employees from '@/src/pages/Employees';
@@ -30,6 +31,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <Toaster position="top-center" richColors />
       {!user ? (
         <Login onLogin={(u) => {
           setUser(u);
@@ -53,9 +55,9 @@ function App() {
                 <Route path="/services" element={<Services />} />
                 <Route path="/packages" element={<Packages />} />
                 <Route path="/extras" element={<Extras />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/activity" element={<Activity />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/reports" element={user.role === 'admin' ? <Reports /> : <Navigate to="/" replace />} />
+                <Route path="/activity" element={user.role === 'admin' ? <Activity /> : <Navigate to="/" replace />} />
+                <Route path="/settings" element={user.role === 'admin' ? <Settings /> : <Navigate to="/" replace />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Layout>

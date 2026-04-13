@@ -40,7 +40,7 @@ export default function Layout({ children, user, onLogout }: { children: React.R
         {/* <h1 className="text-2xl font-bold text-primary">Luxowash</h1>
         <p className="text-sm text-muted-foreground">POS & Management</p> */}
       </div>
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" id="sidebar">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -50,13 +50,13 @@ export default function Layout({ children, user, onLogout }: { children: React.R
               to={item.href}
               onClick={() => setIsMobileMenuOpen(false)}
               className={cn(
-                'flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                'flex items-center px-5 py-4 text-base font-medium rounded-lg transition-colors',
                 isActive
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               )}
             >
-              <Icon className={cn('mr-3 h-5 w-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
+              <Icon className={cn('mr-4 h-6 w-6', isActive ? 'text-primary' : 'text-muted-foreground')} />
               {item.name}
             </Link>
           );

@@ -201,7 +201,7 @@ export default function Users() {
                   <TableCell>{u.LastLogin || 'Never'}</TableCell>
                   {isAdmin && (
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => openEdit(u)}>Edit</Button>
+                      <Button variant="outline" onClick={() => openEdit(u)}>Edit</Button>
                     </TableCell>
                   )}
                 </TableRow>

@@ -254,7 +254,7 @@ export default function Packages() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {isAdmin && <Button variant="outline" size="sm" onClick={() => openEdit(pkg)}>Edit</Button>}
+                    {isAdmin && <Button variant="outline" onClick={() => openEdit(pkg)}>Edit</Button>}
                   </TableCell>
                 </TableRow>
               ))
